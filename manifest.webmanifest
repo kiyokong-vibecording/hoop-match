@@ -1,0 +1,10 @@
+{
+  "name": "Hoop Match",
+  "short_name": "Hoop Match",
+  "description": "Local-first basketball opponent matching planner.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f5ef",
+  "theme_color": "#1f7a68",
+  "icons": []
+}
