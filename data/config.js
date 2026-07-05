@@ -7,7 +7,7 @@
 // 注意: supabaseAnonKey は「公開してよい」匿名キーです(行レベルセキュリティ
 // で保護されています)。service_role キーは絶対にここへ書かないでください。
 window.HOOP_CONFIG = {
-  supabaseUrl: "https://xkjpwebhkiovzdlbtwwu.supabase.co/rest/v1/",
+  supabaseUrl: "https://xkjpwebhkiovzdlbtwwu.supabase.co",
   supabaseAnonKey: "sb_publishable_sVd-WB2j2dq5KRSgOqvb4w_f2NgteNR",
   // 任意: Google Analytics 4 の測定ID(例 "G-XXXXXXXXXX")。
   // 空のままなら解析は一切読み込まれません。
