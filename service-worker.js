@@ -1,11 +1,16 @@
-const CACHE_NAME = "hoop-match-v28";
+const CACHE_NAME = "hoop-match-v38";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./data/config.js",
+  "./data/facilities.js",
   "./assets/hero-court.png",
+  "./assets/ogp.jpg",
   "./manifest.webmanifest",
+  "./terms.html",
+  "./privacy.html",
 ];
 
 self.addEventListener("install", (event) => {
@@ -23,6 +28,10 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  // サーバーAPI(supabase等の外部オリジン)はキャッシュせず常にネットワークへ
+  if (new URL(event.request.url).origin !== self.location.origin) {
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request)),
   );

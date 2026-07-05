@@ -1,0 +1,33 @@
+const out = document.createElement("pre");
+out.id = "test-output";
+const r = [];
+const flush = () => { out.textContent = "RESULTS:\n" + r.join("\n"); };
+window.onerror = (m) => { r.push("ONERROR " + m); flush(); };
+let fetchCalls = 0;
+const origFetch = window.fetch;
+window.fetch = (...args) => { fetchCalls += 1; return origFetch(...args); };
+window.addEventListener("load", () => {
+  document.body.append(out);
+  const t = (name, cond) => { r.push((cond ? "PASS" : "FAIL") + " " + name); flush(); };
+  t("api_disabled", publicApiEnabled() === false);
+  t("toolbar_hidden", document.getElementById("publicToolbar").hidden === true);
+  t("public_option_disabled", document.getElementById("publicVisibilityOption").disabled === true);
+  t("option_shows_setup_hint", document.getElementById("publicVisibilityOption").textContent.includes("未設定"));
+  t("consent_hidden", document.getElementById("publicConsentBox").hidden === true);
+  t("my_public_hidden", document.getElementById("myPublicSection").hidden === true);
+  // 従来のローカル投稿がそのまま動く(同期検証)
+  const form = document.getElementById("listingForm");
+  form.elements.type.value = "opponent";
+  form.elements.category.value = "一般";
+  form.elements.title.value = "ローカル投稿テスト";
+  form.elements.prefecture.value = "東京都";
+  form.elements.municipality.value = "新宿区";
+  form.elements.date.value = "2026-08-01";
+  form.elements.level.value = "エンジョイ";
+  const before = state.listings.length;
+  handleListingSubmit(new Event("submit", { cancelable: true }));
+  t("local_post_works", state.listings.length === before + 1);
+  t("saved_no_visibility_field", !("visibility" in state.listings[0]) && !("termsAgree" in state.listings[0]));
+  t("no_fetch_calls", fetchCalls === 0);
+  r.push("DONE"); flush();
+});

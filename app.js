@@ -9,179 +9,12 @@ const typeLabels = {
 };
 
 const weekdayLabels = ["日曜", "月曜", "火曜", "水曜", "木曜", "金曜", "土曜"];
-const labolaFacilityNote =
-  "民間施設の候補です。予約条件、料金、空き状況は施設公式サイトまたは施設ページで確認してください。";
-const municipalFacilityNote =
-  "自治体または公的施設の候補です。利用登録、在住・在勤・在学条件、団体登録、抽選日程、空き状況は公式ページで確認してください。";
-const opasFacilityNote =
-  "OPASに掲載されている公共スポーツ施設です。利用者登録、抽選申込、空き予約、料金、利用条件はOPAS公式ページで確認してください。";
-const facilityOfficialLinks = {
-  "labola-3398": "https://motomachi1927.jp/",
-  "labola-3342": "https://www.futsal-tokyo.co.jp/yaesuku",
-  "labola-3292": "https://www.futsal-tokyo.co.jp/",
-  "labola-3173": "https://sportivo.jp/kichijoji/",
-  "labola-2127": "http://ariake-sportsarena.com/",
-  "labola-3403": "https://www.noah-futsal.com/wakonarimasu/",
-  "labola-2083": "http://www.futsal-tokyo.co.jp/",
-  "labola-3000": "https://ginza-de-futsal.com/minamisuna/",
-  "labola-3130": "https://sportivo.jp/toda/",
-  "labola-3241": "https://ikuta.frontown.com/",
-  "labola-3215": "https://88basketball.jp/court",
-  "labola-3248": "https://kawasaki-bravethunders.com/thunderscourt/",
-  "labola-3296": "https://maru-futsalpark.com/index.html",
-  "labola-3172": "https://sportivo.jp/funabashi/",
-  "labola-941": "http://www.14futsal.com",
-  "labola-2085": "http://www.futsal-tokyo.co.jp/",
-  "labola-3028": "http://www.futsalclub.com/m-kashiwa/",
-  "labola-3301": "https://3x3.kanagawa.jp/",
-  "labola-3224": "https://joso-sportspark.com/",
-  "labola-3305": "https://weinspark.jp/ebina/",
-  "labola-3153": "http://rovers.co.jp/dream-field/",
-  "labola-3025": "https://www.footy-park.com/",
-  "labola-3189": "https://www.shonan-seaside-3x3.com",
-  "labola-3023": "https://www.ktp-sportspark.com/",
-  "labola-3286": "https://www.s-livera.com/index.html",
-  "labola-3239": "https://www.hanazono-stadium.com/hanazono-sports-square/rental-court/",
-  "labola-2109": "http://zfutsal.com/kadoma/",
-  "labola-3381": "https://www.oeda-park.jp/",
-  "labola-3101": "https://shisetsu.mizuno.jp/mss-7353",
-  "labola-3297": "https://hyogofutsal-maya.com/",
-  "labola-3265": "http://campus.tdream-futsal.com/",
-  "labola-3288": "https://zfutsal.com/tomakomai/",
-};
-
-const opasPortalMunicipalities = [
-  "大阪市",
-  "堺市",
-  "豊中市",
-  "池田市",
-  "吹田市",
-  "泉大津市",
-  "高槻市",
-  "貝塚市",
-  "守口市",
-  "枚方市",
-  "茨木市",
-  "八尾市",
-  "富田林市",
-  "河内長野市",
-  "松原市",
-  "東大阪市",
-  "大阪狭山市",
-  "交野市",
-].map((municipality) => ({
-  id: `opas-portal-${municipality}`,
-  source: "opas",
-  name: `${municipality} OPAS公共施設予約`,
-  prefecture: "大阪府",
-  municipality,
-  area: `大阪府${municipality}`,
-  reservationMethod: "自治体予約システム",
-  facilityType: "多目的施設",
-  url: "https://www.opas.jp/",
-  reservationUrl: "https://www.opas.jp/",
-  lastChecked: "2026-07-02",
-  notes: "大阪府内の複数自治体が参加する公共施設予約サービス。体育館、スポーツセンターなどの空き照会・抽選申込・空き予約はOPAS公式ページで確認してください。",
-}));
-
-const opasOsakaFacilities = [
-  ["asue-arena-osaka", "Asueアリーナ大阪", "港区"],
-  ["chishima-gym", "千島体育館", "大正区"],
-  ["higashiyodogawa-gym", "東淀川体育館", "東淀川区"],
-  ["kita-sports-center", "北スポーツセンター", "北区"],
-  ["miyakojima-sports-center", "都島スポーツセンター", "都島区"],
-  ["fukushima-sports-center", "福島スポーツセンター", "福島区"],
-  ["konohana-sports-center", "此花スポーツセンター", "此花区"],
-  ["chuo-sports-center", "中央スポーツセンター", "中央区"],
-  ["nishi-sports-center", "西スポーツセンター", "西区"],
-  ["minato-sports-center", "港スポーツセンター", "港区"],
-  ["taisho-sports-center", "大正スポーツセンター", "大正区"],
-  ["tennoji-sports-center", "天王寺スポーツセンター", "天王寺区"],
-  ["naniwa-sports-center", "浪速スポーツセンター", "浪速区"],
-  ["nishiyodogawa-sports-center", "西淀川スポーツセンター", "西淀川区"],
-  ["yodogawa-sports-center", "淀川スポーツセンター", "淀川区"],
-  ["higashinari-sports-center", "東成スポーツセンター", "東成区"],
-  ["ikuno-sports-center", "生野スポーツセンター", "生野区"],
-  ["asahi-sports-center", "旭スポーツセンター", "旭区"],
-  ["joto-sports-center", "城東スポーツセンター", "城東区"],
-  ["tsurumi-sports-center", "鶴見スポーツセンター", "鶴見区"],
-  ["abeno-sports-center", "阿倍野スポーツセンター", "阿倍野区"],
-  ["suminoe-sports-center", "住之江スポーツセンター", "住之江区"],
-  ["sumiyoshi-sports-center", "住吉スポーツセンター", "住吉区"],
-  ["higashisumiyoshi-sports-center", "東住吉スポーツセンター", "東住吉区"],
-  ["hirano-sports-center", "平野スポーツセンター", "平野区"],
-  ["nishinari-sports-center", "西成スポーツセンター", "西成区"],
-].map(([slug, name, ward]) => ({
-  id: `opas-osaka-${slug}`,
-  source: "opas",
-  name,
-  prefecture: "大阪府",
-  municipality: "大阪市",
-  area: `大阪府大阪市${ward}`,
-  address: `大阪府大阪市${ward}`,
-  reservationMethod: "自治体予約システム",
-  facilityType: "体育館",
-  url: "https://www.opas.jp/osakashi/shisetsu.html",
-  reservationUrl: "https://www.opas.jp/osakashi/yoyaku.html",
-  lastChecked: "2026-07-02",
-  notes: opasFacilityNote,
-}));
-
-const opasSakaiFacilities = [
-  ["ohama-gym", "大浜体育館", "堺区"],
-  ["kanaoka-park-gym", "金岡公園体育館", "北区"],
-  ["iebara-oike-gym", "家原大池体育館", "西区"],
-  ["kamotani-gym", "鴨谷体育館", "南区"],
-  ["mihara-gym", "美原体育館", "美原区"],
-  ["haraike-park-gym", "原池公園体育館", "中区"],
-  ["hatsushiba-gym", "初芝体育館", "東区"],
-].map(([slug, name, ward]) => ({
-  id: `opas-sakai-${slug}`,
-  source: "opas",
-  name,
-  prefecture: "大阪府",
-  municipality: "堺市",
-  area: `大阪府堺市${ward}`,
-  address: `大阪府堺市${ward}`,
-  reservationMethod: "自治体予約システム",
-  facilityType: "体育館",
-  url: "https://www.opas.jp/sakai/shisetsu.html",
-  reservationUrl: "https://www.opas.jp/sakai/yoyaku.html",
-  lastChecked: "2026-07-02",
-  notes: opasFacilityNote,
-}));
-
-const officialReservationSystemFacilities = [
-  {
-    id: "sapporo-public-reservation",
-    source: "catalog",
-    name: "札幌市公共施設予約情報システム",
-    prefecture: "北海道",
-    municipality: "札幌市",
-    area: "北海道札幌市",
-    reservationMethod: "自治体予約システム",
-    facilityType: "多目的施設",
-    url: "https://www.city.sapporo.jp/shisetsu-yoyaku/",
-    reservationUrl: "https://www.city.sapporo.jp/shisetsu-yoyaku/",
-    lastChecked: "2026-07-02",
-    notes: `${municipalFacilityNote} 札幌市の公共施設予約情報システム。スポーツ施設、学校開放、抽選・予約などは公式ページで確認してください。`,
-  },
-  {
-    id: "tokyo-sports-reservation",
-    source: "catalog",
-    name: "東京都スポーツ施設予約システム",
-    prefecture: "東京都",
-    municipality: "新宿区",
-    area: "東京都",
-    reservationMethod: "自治体予約システム",
-    facilityType: "多目的施設",
-    url: "https://sports.tef.or.jp/",
-    reservationUrl: "https://sports.tef.or.jp/",
-    lastChecked: "2026-07-02",
-    notes: `${municipalFacilityNote} 都立スポーツ施設の空き状況、予約、利用条件は公式ページで確認してください。`,
-  },
-];
-
+// 施設カタログは data/facilities.json が正。
+// scripts/build-facilities.js が生成する data/facilities.js (window.FACILITY_CATALOG) を index.html で読み込む。
+const facilityCatalog = Array.isArray(window.FACILITY_CATALOG) ? window.FACILITY_CATALOG : [];
+if (!Array.isArray(window.FACILITY_CATALOG)) {
+  console.warn("施設カタログ (data/facilities.js) が読み込まれていません。index.htmlのscriptタグとファイルの存在を確認してください。");
+}
 const facilityDirectoryLinks = [
   {
     prefecture: "東京都",
@@ -2326,650 +2159,7 @@ const sampleState = {
       notes: "成人代表者同士で調整。選手本人の連絡先は扱わない想定。",
     },
   ],
-  facilities: [
-    {
-      id: "setagaya-sougou-gym",
-      source: "catalog",
-      name: "総合運動場体育館",
-      prefecture: "東京都",
-      municipality: "世田谷区",
-      area: "東京都世田谷区",
-      reservationMethod: "自治体予約システム",
-      facilityType: "体育館",
-      url: "https://www.se-sports.or.jp/facilityinfo/sougou-gym/",
-      reservationUrl: "https://www.city.setagaya.lg.jp/mokuji/kusei/012/015/001/002/d00125065.html",
-      lastChecked: "2026-06-28",
-      notes: "バスケットボール利用のある体育館施設。団体利用は世田谷区の公共施設利用案内システムを確認してください。",
-    },
-    {
-      id: "setagaya-oyamadai-gym",
-      source: "catalog",
-      name: "尾山台地域体育館",
-      prefecture: "東京都",
-      municipality: "世田谷区",
-      area: "東京都世田谷区",
-      reservationMethod: "自治体予約システム",
-      facilityType: "体育館",
-      url: "https://www.se-sports.or.jp/facilityinfo/oyamadai-gym/",
-      reservationUrl: "https://www.city.setagaya.lg.jp/mokuji/kusei/012/015/001/002/d00125065.html",
-      lastChecked: "2026-06-28",
-      notes: "バスケットボール利用のある地域体育館。予約方法、利用条件、空き状況は公式ページで確認してください。",
-    },
-    {
-      id: "setagaya-hachimanyama-gym",
-      source: "catalog",
-      name: "八幡山小地域体育館",
-      prefecture: "東京都",
-      municipality: "世田谷区",
-      area: "東京都世田谷区",
-      reservationMethod: "自治体予約システム",
-      facilityType: "体育館",
-      url: "https://www.se-sports.or.jp/facilityinfo/hatimanyama-gym/",
-      reservationUrl: "https://www.city.setagaya.lg.jp/mokuji/kusei/012/015/001/002/d00125065.html",
-      lastChecked: "2026-06-28",
-      notes: "ミニバスケットボール利用のある地域体育館。U12向けの候補として公式情報を確認してください。",
-    },
-    {
-      id: "setagaya-kibogaoka-gym",
-      source: "catalog",
-      name: "希望丘地域体育館",
-      prefecture: "東京都",
-      municipality: "世田谷区",
-      area: "東京都世田谷区",
-      reservationMethod: "自治体予約システム",
-      facilityType: "体育館",
-      url: "https://www.se-sports.or.jp/facilityinfo/kibougaoka-gym/",
-      reservationUrl: "https://www.city.setagaya.lg.jp/mokuji/kusei/012/015/001/002/d00125065.html",
-      lastChecked: "2026-06-29",
-      notes: "体育館を備える地域体育館。団体利用はけやきネット登録、予約条件、空き状況を公式ページで確認してください。",
-    },
-    {
-      id: "komazawa-gymnasium",
-      source: "catalog",
-      name: "駒沢オリンピック公園総合運動場 体育館",
-      prefecture: "東京都",
-      municipality: "世田谷区",
-      area: "東京都世田谷区",
-      reservationMethod: "自治体予約システム",
-      facilityType: "体育館",
-      url: "https://www.tef.or.jp/kopgp/gymnasium/",
-      reservationUrl: "https://sports.tef.or.jp/",
-      lastChecked: "2026-06-29",
-      notes: "バスケットボール利用が案内されている都立スポーツ施設。予約方法、利用条件、空き状況は公式ページで確認してください。",
-    },
-    {
-      id: "komazawa-ballgame-indoor",
-      source: "catalog",
-      name: "駒沢オリンピック公園総合運動場 屋内球技場",
-      prefecture: "東京都",
-      municipality: "世田谷区",
-      area: "東京都世田谷区",
-      reservationMethod: "自治体予約システム",
-      facilityType: "多目的施設",
-      url: "https://www.tef.or.jp/kopgp/ballgame-indoor/",
-      reservationUrl: "https://sports.tef.or.jp/",
-      lastChecked: "2026-06-29",
-      notes: "バスケットボール利用が案内されている屋内球技場。大会・団体利用の条件は公式ページで確認してください。",
-    },
-    {
-      id: "edogawa-edonet-sports",
-      source: "catalog",
-      name: "江戸川区施設予約システム えどねっと（バスケットボール対応施設）",
-      prefecture: "東京都",
-      municipality: "江戸川区",
-      area: "東京都江戸川区",
-      reservationMethod: "自治体予約システム",
-      facilityType: "多目的施設",
-      url: "https://www.shisetsuyoyaku.city.edogawa.tokyo.jp/user/Home",
-      reservationUrl: "https://www.shisetsuyoyaku.city.edogawa.tokyo.jp/user/Home",
-      lastChecked: "2026-07-02",
-      notes: "江戸川区の公共施設予約システム。利用目的にバスケットボール（屋内）・バスケットボール（屋外）があり、利用登録後に空き照会・申込を行う形式。対象施設、抽選期間、登録条件は区公式ページで確認してください。",
-    },
-    ...officialReservationSystemFacilities,
-    ...opasPortalMunicipalities,
-    ...opasOsakaFacilities,
-    ...opasSakaiFacilities,
-    {
-      id: "ishikawa-sogo-sports-center",
-      source: "catalog",
-      name: "いしかわ総合スポーツセンター",
-      prefecture: "石川県",
-      municipality: "金沢市",
-      area: "石川県金沢市",
-      address: "石川県金沢市稚日野町北222",
-      reservationMethod: "公式サイト確認",
-      facilityType: "体育館",
-      url: "http://www.ishikawa-spc.jp/",
-      reservationUrl: "http://www.ishikawa-spc.jp/",
-      lastChecked: "2026-07-01",
-      notes: "石川県の総合スポーツ施設。バスケットボール利用、予約条件、空き状況は公式サイトで確認してください。",
-    },
-    {
-      id: "tottori-yamata-sports-park",
-      source: "catalog",
-      name: "ヤマタスポーツパーク",
-      prefecture: "鳥取県",
-      municipality: "鳥取市",
-      area: "鳥取県鳥取市",
-      address: "鳥取県鳥取市布勢146-1",
-      reservationMethod: "公式サイト確認",
-      facilityType: "体育館",
-      url: "https://www.fuse-sportspark.com/",
-      reservationUrl: "https://www.fuse-sportspark.com/",
-      lastChecked: "2026-07-01",
-      notes: "鳥取県立布勢総合運動公園の施設。体育館利用、予約条件、空き状況は公式サイトで確認してください。",
-    },
-    {
-      id: "labola-3398",
-      source: "labola",
-      name: "元町ウェルネスパーク",
-      prefecture: "東京都",
-      municipality: "文京区",
-      area: "東京都文京区",
-      address: "東京都文京区本郷1-1-19",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3398/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3398/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3342",
-      source: "labola",
-      name: "八重洲スクールシェア",
-      prefecture: "東京都",
-      municipality: "中央区",
-      area: "東京都中央区",
-      address: "東京都中央区八重洲2-2-1",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3342/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3342/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3292",
-      source: "labola",
-      name: "BUDDYスポーツアリーナ勝どき",
-      prefecture: "東京都",
-      municipality: "中央区",
-      area: "東京都中央区",
-      address: "東京都中央区勝どき4-6-2 パークタワー勝どきミッド3F",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3292/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3292/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3173",
-      source: "labola",
-      name: "Sportivo吉祥寺",
-      prefecture: "東京都",
-      municipality: "武蔵野市",
-      area: "東京都武蔵野市",
-      address: "東京都武蔵野市吉祥寺南町1-7-1 吉祥寺マルイ5F",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3173/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3173/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-2127",
-      source: "labola",
-      name: "BUDDYスポーツアリーナ",
-      prefecture: "東京都",
-      municipality: "江東区",
-      area: "東京都江東区",
-      address: "東京都江東区有明1-5-22 BUDDYスポーツアリーナ",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/2127/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/2127/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3403",
-      source: "labola",
-      name: "ノア・フットサルステージ和光成増",
-      prefecture: "埼玉県",
-      municipality: "和光市",
-      area: "埼玉県和光市",
-      address: "埼玉県和光市白子2-25-2",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3403/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3403/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-2083",
-      source: "labola",
-      name: "フットサルクラブ東京 東陽町コート",
-      prefecture: "東京都",
-      municipality: "江東区",
-      area: "東京都江東区",
-      address: "東京都江東区新砂1-10-5",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/2083/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/2083/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3000",
-      source: "labola",
-      name: "銀座deフットサル 南砂トピレックスタジアム",
-      prefecture: "東京都",
-      municipality: "江東区",
-      area: "東京都江東区",
-      address: "東京都江東区南砂6-7-15 トピレックプラザ イオン館屋上",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3000/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3000/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3130",
-      source: "labola",
-      name: "Sportivo戸田",
-      prefecture: "埼玉県",
-      municipality: "戸田市",
-      area: "埼玉県戸田市",
-      address: "埼玉県戸田市新曽1400",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3130/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3130/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3241",
-      source: "labola",
-      name: "Anker フロンタウン生田",
-      prefecture: "神奈川県",
-      municipality: "川崎市多摩区",
-      area: "神奈川県川崎市多摩区",
-      address: "神奈川県川崎市多摩区生田1-1-1",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3241/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3241/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3215",
-      source: "labola",
-      name: "88 COURT",
-      prefecture: "神奈川県",
-      municipality: "横浜市都筑区",
-      area: "神奈川県横浜市都筑区",
-      address: "神奈川県横浜市都筑区東山田町305",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3215/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3215/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3248",
-      source: "labola",
-      name: "KAWASAKI BRAVE THUNDERS COURT",
-      prefecture: "神奈川県",
-      municipality: "川崎市川崎区",
-      area: "神奈川県川崎市川崎区",
-      address: "神奈川県川崎市川崎区小川町4-1 ラ チッタデッラ内",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3248/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3248/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3296",
-      source: "labola",
-      name: "MARU FUTSAL PARK",
-      prefecture: "埼玉県",
-      municipality: "さいたま市桜区",
-      area: "埼玉県さいたま市桜区",
-      address: "埼玉県さいたま市桜区大字上大久保778-1",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3296/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3296/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3172",
-      source: "labola",
-      name: "Sportivo船橋",
-      prefecture: "千葉県",
-      municipality: "船橋市",
-      area: "千葉県船橋市",
-      address: "千葉県船橋市山手1-1-8 イオンモール船橋3階",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3172/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3172/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-941",
-      source: "labola",
-      name: "CATORZE14 FUTSAL PARK 町田",
-      prefecture: "東京都",
-      municipality: "町田市",
-      area: "東京都町田市",
-      address: "東京都町田市原町田4-1-17 ミーナ町田屋上",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/941/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/941/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-2085",
-      source: "labola",
-      name: "フットサルクラブ東京 八王子体育館/屋内人工芝",
-      prefecture: "東京都",
-      municipality: "八王子市",
-      area: "東京都八王子市",
-      address: "東京都八王子市高倉町33-2 バディスポーツ幼児園八王子校内",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/2085/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/2085/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3028",
-      source: "labola",
-      name: "FFCモラージュ柏",
-      prefecture: "千葉県",
-      municipality: "柏市",
-      area: "千葉県柏市",
-      address: "千葉県柏市大山台2-3 モラージュ柏屋上",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3028/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3028/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3301",
-      source: "labola",
-      name: "TY BASE",
-      prefecture: "神奈川県",
-      municipality: "厚木市",
-      area: "神奈川県厚木市",
-      address: "神奈川県厚木市関口397-2",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3301/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3301/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3224",
-      source: "labola",
-      name: "常総運動公園",
-      prefecture: "茨城県",
-      municipality: "守谷市",
-      area: "茨城県守谷市",
-      address: "茨城県守谷市野木崎4700",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3224/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3224/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3305",
-      source: "labola",
-      name: "WEINS PARK 海老名",
-      prefecture: "神奈川県",
-      municipality: "海老名市",
-      area: "神奈川県海老名市",
-      address: "神奈川県海老名市中新田3289-40",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3305/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3305/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3153",
-      source: "labola",
-      name: "ローヴァーズドリームフィールド＆中郷アリーナ",
-      prefecture: "千葉県",
-      municipality: "木更津市",
-      area: "千葉県木更津市",
-      address: "千葉県木更津市有吉932",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3153/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3153/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3025",
-      source: "labola",
-      name: "Footy Park Inzai",
-      prefecture: "千葉県",
-      municipality: "印西市",
-      area: "千葉県印西市",
-      address: "千葉県印西市鹿黒南5-1",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3025/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3025/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3189",
-      source: "labola",
-      name: "Shonan Ball Field",
-      prefecture: "神奈川県",
-      municipality: "平塚市",
-      area: "神奈川県平塚市",
-      address: "神奈川県平塚市岡崎字谷田4430-1",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3189/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3189/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3023",
-      source: "labola",
-      name: "KTP SPORTS PARK",
-      prefecture: "茨城県",
-      municipality: "ひたちなか市",
-      area: "茨城県ひたちなか市",
-      address: "茨城県ひたちなか市足崎1101-5",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3023/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3023/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3286",
-      source: "labola",
-      name: "スポーツステージ リベラ鶴巻",
-      prefecture: "宮城県",
-      municipality: "仙台市宮城野区",
-      area: "宮城県仙台市宮城野区",
-      address: "宮城県仙台市宮城野区1丁目16-38",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3286/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3286/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3239",
-      source: "labola",
-      name: "HOS花園スポーツスクエア",
-      prefecture: "大阪府",
-      municipality: "東大阪市",
-      area: "大阪府東大阪市",
-      address: "大阪府東大阪市松原南1-22-1 ファミリーガーデンHANAZONO 2階",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3239/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3239/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-2109",
-      source: "labola",
-      name: "Z FUTSAL SPORT カドマ",
-      prefecture: "大阪府",
-      municipality: "門真市",
-      area: "大阪府門真市",
-      address: "大阪府門真市深田町25-4",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/2109/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/2109/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3381",
-      source: "labola",
-      name: "大枝公園",
-      prefecture: "大阪府",
-      municipality: "守口市",
-      area: "大阪府守口市",
-      address: "大阪府守口市松下町1-80",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3381/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3381/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3101",
-      source: "labola",
-      name: "ミズノスポーツプラザ潮芦屋",
-      prefecture: "兵庫県",
-      municipality: "芦屋市",
-      area: "兵庫県芦屋市",
-      address: "兵庫県芦屋市涼風町5-1",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3101/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3101/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3297",
-      source: "labola",
-      name: "ペナルティスタジアムKOBE",
-      prefecture: "兵庫県",
-      municipality: "神戸市灘区",
-      area: "兵庫県神戸市灘区",
-      address: "兵庫県神戸市灘区摩耶埠頭1-1",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3297/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3297/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3284",
-      source: "labola",
-      name: "エヴォルヴィンフットボールフィールド",
-      prefecture: "広島県",
-      municipality: "福山市",
-      area: "広島県福山市",
-      address: "広島県福山市新浜町2丁目3-1",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3284/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3284/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3265",
-      source: "labola",
-      name: "FUTSAL CAMPUS T-DREAM",
-      prefecture: "広島県",
-      municipality: "広島市安佐南区",
-      area: "広島県広島市安佐南区",
-      address: "広島県広島市安佐南区伴中央5丁目16-19",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3265/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3265/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3288",
-      source: "labola",
-      name: "Z FUTSAL SPORT 北海道 苫小牧スタジアム",
-      prefecture: "北海道",
-      municipality: "苫小牧市",
-      area: "北海道苫小牧市",
-      address: "北海道苫小牧市木場町1-6-1 MEGAドン・キホーテ苫小牧3F",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3288/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3288/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-    {
-      id: "labola-3310",
-      source: "labola",
-      name: "フクチファインドフィールド",
-      prefecture: "福岡県",
-      municipality: "田川郡福智町",
-      area: "福岡県田川郡福智町",
-      address: "福岡県田川郡福智町神崎1098-1",
-      reservationMethod: "民間予約サイト",
-      facilityType: "民間コート",
-      url: "https://yoyaku.labola.jp/r/shop/3310/",
-      reservationUrl: "https://yoyaku.labola.jp/r/shop/3310/calendar/",
-      lastChecked: "2026-06-29",
-      notes: labolaFacilityNote,
-    },
-  ],
+  facilities: facilityCatalog,
 };
 
 let state = loadState();
@@ -2977,6 +2167,17 @@ let state = loadState();
 const elements = {
   listingGrid: document.querySelector("#listingGrid"),
   listingTemplate: document.querySelector("#listingTemplate"),
+  newSinceLastVisit: document.querySelector("#newSinceLastVisit"),
+  publicToolbar: document.querySelector("#publicToolbar"),
+  reloadPublic: document.querySelector("#reloadPublic"),
+  publicStatus: document.querySelector("#publicStatus"),
+  listingVisibility: document.querySelector("#listingVisibility"),
+  publicVisibilityOption: document.querySelector("#publicVisibilityOption"),
+  publicConsentBox: document.querySelector("#publicConsentBox"),
+  publicTermsAgree: document.querySelector("#publicTermsAgree"),
+  publicApplyFields: document.querySelector("#publicApplyFields"),
+  myPublicSection: document.querySelector("#myPublicSection"),
+  myPublicList: document.querySelector("#myPublicList"),
   teamForm: document.querySelector("#teamForm"),
   teamFields: document.querySelector(".team-fields"),
   teamProfile: document.querySelector("#teamProfile"),
@@ -3022,8 +2223,20 @@ const elements = {
   facilitySearchReservation: document.querySelector("#facilitySearchReservation"),
   facilitySearchType: document.querySelector("#facilitySearchType"),
   facilitySearchKeyword: document.querySelector("#facilitySearchKeyword"),
+  hiddenFacilityManager: document.querySelector("#hiddenFacilityManager"),
+  hiddenFacilityCount: document.querySelector("#hiddenFacilityCount"),
+  hiddenFacilityList: document.querySelector("#hiddenFacilityList"),
+  restoreAllFacilities: document.querySelector("#restoreAllFacilities"),
   exportData: document.querySelector("#exportData"),
   importData: document.querySelector("#importData"),
+  dataStatus: document.querySelector("#dataStatus"),
+  listingYouthConfirm: document.querySelector("#listingYouthConfirm"),
+  listingAdultConfirmed: document.querySelector("#listingAdultConfirmed"),
+  applicationYouthConfirm: document.querySelector("#applicationYouthConfirm"),
+  applicationAdultConfirmed: document.querySelector("#applicationAdultConfirmed"),
+  listingFacilityBanner: document.querySelector("#listingFacilityBanner"),
+  listingFacilityBannerText: document.querySelector("#listingFacilityBannerText"),
+  clearListingFacility: document.querySelector("#clearListingFacility"),
   countMatch: document.querySelector("#countMatch"),
   countMember: document.querySelector("#countMember"),
   countPickup: document.querySelector("#countPickup"),
@@ -3047,7 +2260,7 @@ let activeListingFilters = {
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) {
-    return normalizeState({ listings: [], facilities: sampleState.facilities, team: null, applications: [] });
+    return normalizeState({ listings: [], facilities: sampleState.facilities, team: null, applications: [], myPublicListings: [], hiddenFacilityIds: [] });
   }
 
   try {
@@ -3057,9 +2270,11 @@ function loadState() {
       facilities: Array.isArray(parsed.facilities) ? parsed.facilities : [],
       team: parsed.team || null,
       applications: Array.isArray(parsed.applications) ? parsed.applications : [],
+      myPublicListings: Array.isArray(parsed.myPublicListings) ? parsed.myPublicListings : [],
+      hiddenFacilityIds: Array.isArray(parsed.hiddenFacilityIds) ? parsed.hiddenFacilityIds : [],
     });
   } catch {
-    return { listings: [], facilities: [], team: null, applications: [] };
+    return { listings: [], facilities: [], team: null, applications: [], myPublicListings: [], hiddenFacilityIds: [] };
   }
 }
 
@@ -3089,7 +2304,16 @@ function normalizeState(nextState) {
     }),
     facilities: nextState.facilities.map(normalizeLocation),
     team: nextState.team ? normalizeLocation(nextState.team) : null,
-    applications: Array.isArray(nextState.applications) ? nextState.applications : [],
+    // 応募には返信スレッドとマッチング状態を持たせる(旧データには初期値を補完)
+    applications: (Array.isArray(nextState.applications) ? nextState.applications : []).map(
+      (application) => ({
+        ...application,
+        status: application.status || "pending",
+        replies: Array.isArray(application.replies) ? application.replies : [],
+      }),
+    ),
+    myPublicListings: Array.isArray(nextState.myPublicListings) ? nextState.myPublicListings : [],
+    hiddenFacilityIds: Array.isArray(nextState.hiddenFacilityIds) ? nextState.hiddenFacilityIds : [],
   };
 }
 
@@ -3097,8 +2321,8 @@ function normalizeLocation(item) {
   const parsed = parseArea(item.area || "");
   const prefecture = item.prefecture || parsed.prefecture;
   const municipality = item.municipality || parsed.municipality;
-  const officialUrl = item.officialUrl || facilityOfficialLinks[item.id] || "";
-  const isExternalFacility = item.source === "labola";
+  // 公式URL・予約URL・注意書きは data/facilities.json 側で解決済みの値を使う
+  const officialUrl = item.officialUrl || "";
 
   return {
     ...item,
@@ -3108,8 +2332,8 @@ function normalizeLocation(item) {
     facilityType: item.facilityType || "体育館",
     officialUrl,
     url: officialUrl || item.url,
-    reservationUrl: isExternalFacility ? officialUrl || item.url : item.reservationUrl,
-    notes: isExternalFacility ? labolaFacilityNote : item.notes,
+    reservationUrl: item.reservationUrl,
+    notes: item.notes,
   };
 }
 
@@ -3202,6 +2426,357 @@ function hasRegisteredTeam() {
   return Boolean(state.team?.name && state.team?.adultConfirmed);
 }
 
+function isYouthCategory(category) {
+  return /^U1[258]/.test(category || "");
+}
+
+// 募集や応募に添付する、登録済みチーム情報のスナップショット
+function makeTeamSnapshot() {
+  if (!state.team?.name) return null;
+  return {
+    name: state.team.name || "",
+    category: state.team.category || "",
+    level: state.team.level || "",
+    area: buildArea(state.team),
+    notes: state.team.notes || "",
+  };
+}
+
+function getApplicationsForListing(listingId) {
+  return state.applications.filter((application) => application.listingId === listingId);
+}
+
+const APPLICATION_STATUS_LABELS = {
+  pending: "返信待ち",
+  accepted: "マッチング成立",
+  declined: "見送り",
+};
+
+// ===== 公開マッチング(サーバー連携 / Supabase) =====
+// 設定が空(data/config.js)の場合は無効となり、従来のローカル専用で動作する。
+let publicListings = [];
+
+function publicApiEnabled() {
+  const cfg = window.HOOP_CONFIG;
+  return Boolean(
+    cfg &&
+      typeof cfg.supabaseUrl === "string" &&
+      cfg.supabaseUrl.startsWith("https://") &&
+      typeof cfg.supabaseAnonKey === "string" &&
+      cfg.supabaseAnonKey.length > 20,
+  );
+}
+
+function sbHeaders() {
+  const cfg = window.HOOP_CONFIG;
+  return {
+    "Content-Type": "application/json",
+    apikey: cfg.supabaseAnonKey,
+    Authorization: `Bearer ${cfg.supabaseAnonKey}`,
+  };
+}
+
+async function sbRequest(path, options = {}) {
+  const cfg = window.HOOP_CONFIG;
+  const response = await fetch(`${cfg.supabaseUrl}${path}`, {
+    ...options,
+    headers: { ...sbHeaders(), ...(options.headers || {}) },
+  });
+  if (!response.ok) {
+    let detail = "";
+    try {
+      const body = await response.json();
+      detail = body.message || body.hint || "";
+    } catch {
+      // 本文が読めない場合はステータスのみ
+    }
+    throw new Error(detail || `サーバーエラー (${response.status})`);
+  }
+  if (response.status === 204) return null;
+  return response.json();
+}
+
+function sbRpc(name, params) {
+  return sbRequest(`/rest/v1/rpc/${name}`, {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
+// サーバーの行(snake_case)をアプリ内の募集オブジェクトに変換する
+function mapPublicRow(row) {
+  return normalizeLocation({
+    id: row.id,
+    isPublic: true,
+    type: row.type,
+    category: row.category,
+    title: row.title,
+    prefecture: row.prefecture,
+    municipality: row.municipality,
+    area: row.area,
+    date: row.date || "",
+    weekday: row.weekday || "",
+    level: row.level || "",
+    fee: row.fee || "",
+    courtReserved: Boolean(row.court_reserved),
+    notes: row.notes || "",
+    facilityName: row.facility_name || "",
+    adultConfirmed: Boolean(row.adult_confirmed),
+    createdAt: row.created_at,
+  });
+}
+
+function setPublicStatus(message, isError = false) {
+  if (!elements.publicStatus) return;
+  elements.publicStatus.textContent = message;
+  elements.publicStatus.classList.toggle("error-text", isError);
+}
+
+async function loadPublicListings({ silent = false } = {}) {
+  if (!publicApiEnabled()) return;
+  if (!silent) setPublicStatus("読み込み中…");
+  try {
+    const rows = await sbRequest(
+      "/rest/v1/public_listings_view?select=*&order=date.asc.nullslast&limit=200",
+    );
+    publicListings = (Array.isArray(rows) ? rows : []).map(mapPublicRow);
+    updateNewSinceBadge();
+    markListingsSeen();
+    setPublicStatus(`公開募集 ${publicListings.length}件 (${new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}時点)`);
+    renderListings();
+  } catch (error) {
+    setPublicStatus(`公開募集を読み込めませんでした: ${error.message}`, true);
+  }
+}
+
+async function submitPublicListing(data) {
+  const result = await sbRpc("submit_listing", {
+    p_type: data.type,
+    p_category: data.category,
+    p_title: data.title,
+    p_prefecture: data.prefecture,
+    p_municipality: data.municipality,
+    p_area: buildArea(data),
+    p_date: data.date || null,
+    p_weekday: data.weekday || getWeekdayLabel(data.date) || null,
+    p_level: data.level || null,
+    p_fee: data.fee || null,
+    p_court_reserved: data.courtReserved === "on",
+    p_notes: data.notes || null,
+    p_facility_name: data.facilityName || null,
+    p_adult_confirmed: data.adultConfirmed === "on",
+  });
+  return result;
+}
+
+async function fetchMyPublicListingDetail(entry) {
+  return sbRpc("get_my_listing_detail", {
+    p_listing_id: entry.id,
+    p_manage_key: entry.manageKey,
+  });
+}
+
+async function closeMyPublicListing(entry) {
+  return sbRpc("close_listing", {
+    p_listing_id: entry.id,
+    p_manage_key: entry.manageKey,
+  });
+}
+
+async function reportPublicListing(listingId, reason) {
+  return sbRpc("report_listing", { p_listing_id: listingId, p_reason: reason });
+}
+
+const PUBLIC_STATUS_LABELS = {
+  pending: "承認待ち",
+  approved: "公開中",
+  closed: "終了",
+  rejected: "非承認",
+};
+
+function renderMyPublicListings() {
+  if (!elements.myPublicSection) return;
+  const entries = state.myPublicListings;
+  elements.myPublicSection.hidden = entries.length === 0;
+  elements.myPublicList.replaceChildren();
+
+  entries.forEach((entry) => {
+    const card = document.createElement("article");
+    card.className = "private-card my-public-card";
+
+    const title = document.createElement("strong");
+    title.textContent = entry.title;
+    const meta = document.createElement("p");
+    meta.className = "meta";
+    meta.textContent = `投稿: ${new Date(entry.createdAt).toLocaleDateString("ja-JP")} / 状態: ${
+      PUBLIC_STATUS_LABELS[entry.status] || entry.status || "承認待ち"
+    }`;
+
+    const detail = document.createElement("div");
+    detail.className = "my-public-detail";
+
+    const actions = document.createElement("div");
+    actions.className = "card-actions";
+
+    const checkButton = document.createElement("button");
+    checkButton.type = "button";
+    checkButton.textContent = "応募を確認";
+    checkButton.addEventListener("click", async () => {
+      checkButton.disabled = true;
+      detail.textContent = "確認中…";
+      try {
+        const result = await fetchMyPublicListingDetail(entry);
+        entry.status = result.status;
+        saveState();
+        meta.textContent = `投稿: ${new Date(entry.createdAt).toLocaleDateString("ja-JP")} / 状態: ${
+          PUBLIC_STATUS_LABELS[result.status] || result.status
+        }`;
+        detail.replaceChildren();
+        const apps = Array.isArray(result.applications) ? result.applications : [];
+        if (apps.length === 0) {
+          detail.textContent = result.status === "pending"
+            ? "まだ承認待ちです。承認されると公開され、応募を受け付けます。"
+            : "まだ応募はありません。";
+        } else {
+          apps.forEach((app) => {
+            const item = document.createElement("div");
+            item.className = "my-public-application";
+            const head = document.createElement("p");
+            head.className = "meta";
+            head.textContent = `${new Date(app.created_at).toLocaleString("ja-JP")} / ${
+              app.applicant_name || "名前なし"
+            }${app.adult_confirmed ? " / 成人代表者確認済み" : ""}`;
+            const body = document.createElement("p");
+            body.textContent = app.message;
+            const contact = document.createElement("p");
+            contact.className = "meta";
+            contact.textContent = `連絡先: ${app.contact}`;
+            item.append(head, body, contact);
+            detail.append(item);
+          });
+        }
+      } catch (error) {
+        detail.textContent = `取得できませんでした: ${error.message}`;
+      } finally {
+        checkButton.disabled = false;
+      }
+    });
+
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.className = "danger";
+    closeButton.textContent = "募集を終了";
+    closeButton.addEventListener("click", async () => {
+      if (!window.confirm("この公開募集を終了しますか?(元に戻せません)")) return;
+      closeButton.disabled = true;
+      try {
+        await closeMyPublicListing(entry);
+        entry.status = "closed";
+        saveState();
+        renderMyPublicListings();
+        loadPublicListings({ silent: true });
+      } catch (error) {
+        detail.textContent = `終了できませんでした: ${error.message}`;
+        closeButton.disabled = false;
+      }
+    });
+
+    if (entry.status === "closed" || entry.status === "rejected") {
+      closeButton.disabled = true;
+    }
+
+    actions.append(checkButton, closeButton);
+    card.append(title, meta, actions, detail);
+    elements.myPublicList.append(card);
+  });
+}
+
+function renderHiddenFacilities() {
+  if (!elements.hiddenFacilityManager) return;
+  const all = getAllFacilities();
+  // 実在する施設IDのみを対象にする(カタログ更新で消えたIDは自動的に掃除)
+  const validIds = new Set(all.map((facility) => facility.id));
+  state.hiddenFacilityIds = state.hiddenFacilityIds.filter((id) => validIds.has(id));
+
+  const hiddenFacilities = all.filter((facility) => state.hiddenFacilityIds.includes(facility.id));
+  elements.hiddenFacilityManager.hidden = hiddenFacilities.length === 0;
+  elements.hiddenFacilityCount.textContent = hiddenFacilities.length;
+  elements.hiddenFacilityList.replaceChildren();
+
+  hiddenFacilities.forEach((facility) => {
+    const card = document.createElement("article");
+    card.className = "private-card hidden-facility-card";
+
+    const title = document.createElement("strong");
+    title.textContent = facility.name;
+    const meta = document.createElement("p");
+    meta.className = "meta";
+    meta.textContent = `${buildArea(facility)} / ${facility.facilityType || "施設"}`;
+
+    const actions = document.createElement("div");
+    actions.className = "card-actions";
+
+    const restore = document.createElement("button");
+    restore.type = "button";
+    restore.textContent = "再表示";
+    restore.addEventListener("click", () => {
+      state.hiddenFacilityIds = state.hiddenFacilityIds.filter((id) => id !== facility.id);
+      saveState();
+      renderFacilities();
+      renderHiddenFacilities();
+    });
+    actions.append(restore);
+
+    // 自分で追加した施設のみ、ここから完全削除できる(確認ダイアログ付き)
+    if (facility.source !== "catalog") {
+      const del = document.createElement("button");
+      del.className = "danger";
+      del.type = "button";
+      del.textContent = "完全に削除";
+      del.addEventListener("click", () => {
+        if (!window.confirm(`「${facility.name}」を完全に削除しますか?\nこの操作は元に戻せません(自分で追加した施設のデータが消えます)。`)) {
+          return;
+        }
+        state.facilities = state.facilities.filter((item) => item.id !== facility.id);
+        state.hiddenFacilityIds = state.hiddenFacilityIds.filter((id) => id !== facility.id);
+        saveState();
+        updateMunicipalitySelect();
+        updateFacilitySearchMunicipalitySelect();
+        render();
+        renderHiddenFacilities();
+      });
+      actions.append(del);
+    }
+
+    card.append(title, meta, actions);
+    elements.hiddenFacilityList.append(card);
+  });
+}
+
+function updateVisibilityUI() {
+  if (!elements.listingVisibility) return;
+  const enabled = publicApiEnabled();
+  if (elements.publicVisibilityOption) {
+    elements.publicVisibilityOption.disabled = !enabled;
+    elements.publicVisibilityOption.textContent = enabled
+      ? "公開募集にする(承認後に全国公開)"
+      : "公開募集にする(未設定: docs/backend-setup.md 参照)";
+  }
+  const isPublic = enabled && elements.listingVisibility.value === "public";
+  elements.publicConsentBox.hidden = !isPublic;
+  elements.publicTermsAgree.required = isPublic;
+  if (!isPublic) elements.publicTermsAgree.checked = false;
+}
+
+function updateListingYouthConfirm() {
+  const isYouth = isYouthCategory(elements.listingForm.elements.category.value);
+  elements.listingYouthConfirm.hidden = !isYouth;
+  elements.listingAdultConfirmed.required = isYouth;
+  if (!isYouth) {
+    elements.listingAdultConfirmed.checked = false;
+  }
+}
+
 function parseLocalDate(value) {
   if (!value) return null;
   const date = new Date(`${value}T00:00:00`);
@@ -3221,6 +2796,25 @@ function getWeekdayLabel(dateValue) {
 
 function getListingWeekday(listing) {
   return listing.weekday || getWeekdayLabel(listing.date);
+}
+
+function getDaysUntil(dateValue) {
+  const date = parseLocalDate(dateValue);
+  if (!date) return null;
+  return Math.round((date.getTime() - getToday().getTime()) / (24 * 60 * 60 * 1000));
+}
+
+function isExpiredListing(listing) {
+  const daysLeft = getDaysUntil(listing.date);
+  return daysLeft !== null && daysLeft < 0;
+}
+
+function formatDaysLeft(daysLeft) {
+  if (daysLeft === null) return "";
+  if (daysLeft < 0) return "開催終了";
+  if (daysLeft === 0) return "本日開催";
+  if (daysLeft === 1) return "明日開催";
+  return `あと${daysLeft}日`;
 }
 
 function isFreshListing(listing) {
@@ -3251,7 +2845,7 @@ function getFilteredListings() {
       : new Date(today.getTime() + Number(dateRange) * 24 * 60 * 60 * 1000);
   const normalizedKeyword = keyword.trim().toLowerCase();
 
-  const filtered = state.listings.filter((listing) => {
+  const listingMatches = (listing) => {
     const listingDate = parseLocalDate(listing.date);
     const haystack = [
       listing.title,
@@ -3292,9 +2886,16 @@ function getFilteredListings() {
       matchesDateRange &&
       matchesWeekday
     );
-  });
+  };
 
-  return filtered.sort((a, b) => {
+  // ローカル募集と公開募集(サーバー)を同じ条件でフィルタして統合する。
+  // 自分が投稿した公開募集は重複しない(ローカルには管理情報のみ保持)。
+  const combined = [
+    ...state.listings.filter(listingMatches),
+    ...publicListings.filter(listingMatches),
+  ];
+
+  return combined.sort((a, b) => {
     if (sort === "new") {
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
     }
@@ -3312,7 +2913,9 @@ function getFilteredFacilities() {
   const facilityType = elements.facilitySearchType.value;
   const keyword = elements.facilitySearchKeyword.value.trim().toLowerCase();
 
+  const hidden = new Set(state.hiddenFacilityIds);
   return getAllFacilities().filter((facility) => {
+    if (hidden.has(facility.id)) return false;
     const haystack = [
       facility.name,
       facility.prefecture,
@@ -3485,9 +3088,45 @@ function renderListings() {
   elements.activeResultCount.textContent = `${listings.length}件`;
 
   if (listings.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "notes";
-    empty.textContent = "条件に合う募集がありません。フィルターを変更するか募集を追加してください。";
+    const empty = document.createElement("div");
+    empty.className = "empty-cta";
+
+    const message = document.createElement("p");
+    const prefecture = elements.filterPrefecture.value;
+    message.textContent =
+      prefecture !== "all"
+        ? `${prefecture}の募集はまだありません。最初の募集を投稿して、共有ボタンで地元のチームに知らせましょう。`
+        : "条件に合う募集がありません。フィルターを変更するか、最初の募集を投稿しましょう。";
+
+    const actions = document.createElement("div");
+    actions.className = "card-actions";
+    const createButton = document.createElement("button");
+    createButton.type = "button";
+    createButton.textContent =
+      prefecture !== "all" ? `${prefecture}で募集を作成する` : "募集を作成する";
+    createButton.addEventListener("click", () => {
+      if (prefecture !== "all") {
+        elements.listingForm.elements.prefecture.value = prefecture;
+        elements.listingForm.elements.prefecture.dispatchEvent(new Event("change"));
+      }
+      elements.listingForm.scrollIntoView({ behavior: "smooth", block: "start" });
+      elements.listingForm.classList.add("form-highlight");
+      setTimeout(() => elements.listingForm.classList.remove("form-highlight"), 1600);
+    });
+    const facilityButton = document.createElement("button");
+    facilityButton.type = "button";
+    facilityButton.className = "secondary";
+    facilityButton.textContent = "近くの体育館・コートを探す";
+    facilityButton.addEventListener("click", () => {
+      switchAppView("facilities");
+      if (prefecture !== "all") {
+        elements.facilitySearchPrefecture.value = prefecture;
+        elements.facilitySearchPrefecture.dispatchEvent(new Event("change"));
+      }
+    });
+    actions.append(createButton, facilityButton);
+
+    empty.append(message, actions);
     elements.listingGrid.append(empty);
     return;
   }
@@ -3506,10 +3145,30 @@ function renderListings() {
     const apply = node.querySelector(".apply");
     const copy = node.querySelector(".copy");
     const del = node.querySelector(".delete");
+    const teamDetails = node.querySelector(".listing-team");
+    const teamBody = node.querySelector(".listing-team-body");
+    const matchStatus = node.querySelector(".match-status");
+    const viewApplications = node.querySelector(".view-applications");
+
+    const daysLeft = getDaysUntil(listing.date);
+    const expired = isExpiredListing(listing);
+    const daysLeftBadge = node.querySelector(".days-left");
 
     badge.textContent = typeLabels[listing.type] ?? listing.type;
     badge.classList.add(listing.type);
-    freshBadge.hidden = !isFreshListing(listing);
+    if (listing.isPublic) {
+      card.classList.add("public-listing");
+      const publicBadge = document.createElement("span");
+      publicBadge.className = "public-badge";
+      publicBadge.textContent = "公開";
+      badge.after(publicBadge);
+    }
+    freshBadge.hidden = expired || !isFreshListing(listing);
+    daysLeftBadge.textContent = formatDaysLeft(daysLeft);
+    daysLeftBadge.hidden = daysLeft === null;
+    daysLeftBadge.classList.toggle("expired-label", expired);
+    daysLeftBadge.classList.toggle("soon", !expired && daysLeft !== null && daysLeft <= 3);
+    card.classList.toggle("expired", expired);
     title.textContent = listing.title;
     date.textContent = listing.date;
     weekday.textContent = getListingWeekday(listing);
@@ -3518,7 +3177,8 @@ function renderListings() {
       listing.category,
       listing.level,
       listing.courtReserved ? "体育館確保済み" : "体育館未確保",
-    ].forEach((label) => {
+      listing.facilityName ? `会場: ${listing.facilityName}` : null,
+    ].filter(Boolean).forEach((label) => {
       const tag = document.createElement("span");
       tag.textContent = label;
       tagRow.append(tag);
@@ -3526,12 +3186,69 @@ function renderListings() {
     meta.textContent = listing.fee || "参加費未設定";
     notes.textContent = listing.notes || "詳細未入力";
 
-    apply.addEventListener("click", () => {
-      startApplication(listing);
-    });
+    // 募集チームの情報(募集作成時に登録済みチームのスナップショットを添付)
+    if (listing.team?.name) {
+      [
+        `チーム名: ${listing.team.name}`,
+        [listing.team.area, listing.team.category, listing.team.level].filter(Boolean).join(" / "),
+        listing.team.notes ? `紹介: ${listing.team.notes}` : "",
+      ]
+        .filter(Boolean)
+        .forEach((line) => {
+          const p = document.createElement("p");
+          p.textContent = line;
+          teamBody.append(p);
+        });
+      teamDetails.hidden = false;
+    }
+
+    // マッチング成立済みの募集
+    const matched = Boolean(listing.matchedApplicationId);
+    if (matched) {
+      const matchedApplication = state.applications.find(
+        (application) => application.id === listing.matchedApplicationId,
+      );
+      const partnerName = matchedApplication?.applicantTeam?.name || matchedApplication?.teamName;
+      matchStatus.textContent = partnerName ? `マッチング成立: ${partnerName}` : "マッチング成立";
+      matchStatus.hidden = false;
+      card.classList.add("matched");
+    }
+
+    if (matched) {
+      apply.disabled = true;
+      apply.textContent = "マッチング成立済み";
+    } else if (expired) {
+      apply.disabled = true;
+      apply.textContent = "受付終了";
+    } else {
+      apply.addEventListener("click", () => {
+        startApplication(listing);
+      });
+    }
+
+    // 自分の募集に届いた応募の確認(応募メッセージ欄へ移動)
+    if (!listing.isPublic) {
+      const received = getApplicationsForListing(listing.id);
+      if (received.length > 0) {
+        viewApplications.hidden = false;
+        viewApplications.textContent = `応募 ${received.length}件を確認`;
+        viewApplications.addEventListener("click", () => {
+          elements.applicationList.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+    }
 
     copy.addEventListener("click", async () => {
       const text = makeShareText(listing);
+      // 共有シートが使える端末(iPhone等)ではLINE・メール等へ直接共有する
+      if (navigator.share) {
+        try {
+          await navigator.share({ text });
+        } catch {
+          // 共有シートをキャンセルした場合は何もしない
+        }
+        return;
+      }
       await navigator.clipboard.writeText(text);
       copy.textContent = "コピー済み";
       setTimeout(() => {
@@ -3539,11 +3256,32 @@ function renderListings() {
       }, 1500);
     });
 
-    del.addEventListener("click", () => {
-      state.listings = state.listings.filter((item) => item.id !== listing.id);
-      saveState();
-      render();
-    });
+    if (listing.isPublic) {
+      // 公開募集: 他人の投稿は削除できないため、通報ボタンに置き換える
+      del.textContent = "通報";
+      del.classList.remove("danger");
+      del.classList.add("secondary");
+      del.addEventListener("click", async () => {
+        const reason = window.prompt(
+          "この募集を通報する理由を入力してください(個人情報の記載、スパム、不適切な内容など)",
+        );
+        if (!reason || !reason.trim()) return;
+        del.disabled = true;
+        try {
+          await reportPublicListing(listing.id, reason.trim().slice(0, 1000));
+          del.textContent = "通報済み";
+        } catch (error) {
+          del.disabled = false;
+          window.alert(`通報を送信できませんでした: ${error.message}`);
+        }
+      });
+    } else {
+      del.addEventListener("click", () => {
+        state.listings = state.listings.filter((item) => item.id !== listing.id);
+        saveState();
+        render();
+      });
+    }
 
     elements.listingGrid.append(card);
   });
@@ -3588,33 +3326,170 @@ function renderApplications() {
 
   state.applications.forEach((application) => {
     const item = document.createElement("article");
-    item.className = "private-item";
+    item.className = "private-item application-thread";
+    const listing = state.listings.find((entry) => entry.id === application.listingId) || null;
+    const statusKey = APPLICATION_STATUS_LABELS[application.status] ? application.status : "pending";
 
+    const head = document.createElement("div");
+    head.className = "application-head";
     const title = document.createElement("strong");
     title.textContent = application.listingTitle;
+    const statusBadge = document.createElement("span");
+    statusBadge.className = `application-status ${statusKey}`;
+    statusBadge.textContent =
+      application.sentToPublic && statusKey === "pending"
+        ? "送信済み"
+        : APPLICATION_STATUS_LABELS[statusKey];
+    head.append(title, statusBadge);
 
     const meta = document.createElement("p");
-    meta.textContent = `${application.teamName || "チーム未登録"} / ${new Date(
-      application.createdAt,
-    ).toLocaleString("ja-JP")}`;
+    meta.className = "meta";
+    const applicantName = application.applicantTeam?.name || application.teamName || "チーム未登録";
+    const applicantDetail = application.applicantTeam
+      ? [
+          application.applicantTeam.area,
+          application.applicantTeam.category,
+          application.applicantTeam.level,
+        ]
+          .filter(Boolean)
+          .join(" / ")
+      : "";
+    meta.textContent = `応募チーム: ${applicantName}${
+      applicantDetail ? `(${applicantDetail})` : ""
+    } / ${new Date(application.createdAt).toLocaleString("ja-JP")}`;
 
-    const message = document.createElement("p");
-    message.textContent = application.message;
+    // 会話スレッド(最初の応募メッセージ+返信)
+    const thread = document.createElement("div");
+    thread.className = "application-messages";
+    const appendMessage = (from, text, createdAt) => {
+      const wrap = document.createElement("div");
+      wrap.className = `application-message ${from === "owner" ? "owner" : "applicant"}`;
+      const role = document.createElement("span");
+      role.className = "role";
+      role.textContent = `${from === "owner" ? "募集者" : "応募者"}${
+        createdAt ? ` ・ ${new Date(createdAt).toLocaleString("ja-JP")}` : ""
+      }`;
+      const body = document.createElement("p");
+      body.textContent = text;
+      wrap.append(role, body);
+      thread.append(wrap);
+    };
+    appendMessage("applicant", application.message, application.createdAt);
+    (application.replies || []).forEach((reply) => {
+      appendMessage(reply.from, reply.message, reply.createdAt);
+    });
+
+    item.append(head, meta, thread);
+
+    if (application.sentToPublic) {
+      const note = document.createElement("p");
+      note.className = "notes";
+      note.textContent =
+        "公開募集への応募はサーバーへ送信済みです。募集者からの返信は記入した連絡先に届きます。";
+      item.append(note);
+    } else {
+      // 返信フォーム(端末内のやり取り。募集者・応募者のどちらの立場でも返信できる)
+      const replyBox = document.createElement("div");
+      replyBox.className = "reply-box";
+      const replyInput = document.createElement("textarea");
+      replyInput.rows = 2;
+      replyInput.placeholder = "返信メッセージ(個人情報は書かない)";
+      const replyActions = document.createElement("div");
+      replyActions.className = "card-actions reply-actions";
+      const sendReply = (from) => {
+        const text = replyInput.value.trim();
+        if (!text) {
+          replyInput.focus();
+          return;
+        }
+        application.replies.push({ from, message: text, createdAt: new Date().toISOString() });
+        saveState();
+        renderApplications();
+      };
+      const ownerReply = document.createElement("button");
+      ownerReply.type = "button";
+      ownerReply.className = "secondary";
+      ownerReply.textContent = "募集者として返信";
+      ownerReply.addEventListener("click", () => sendReply("owner"));
+      const applicantReply = document.createElement("button");
+      applicantReply.type = "button";
+      applicantReply.className = "secondary";
+      applicantReply.textContent = "応募者として返信";
+      applicantReply.addEventListener("click", () => sendReply("applicant"));
+      replyActions.append(ownerReply, applicantReply);
+      replyBox.append(replyInput, replyActions);
+      item.append(replyBox);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "card-actions";
+
+    // 募集者としての判断(この端末にある募集への応募のみ)
+    if (listing && !application.sentToPublic) {
+      if (statusKey === "pending") {
+        const accept = document.createElement("button");
+        accept.type = "button";
+        accept.textContent = "マッチング成立にする";
+        accept.addEventListener("click", () => {
+          application.status = "accepted";
+          listing.matchedApplicationId = application.id;
+          saveState();
+          renderApplications();
+          renderListings();
+        });
+        const decline = document.createElement("button");
+        decline.type = "button";
+        decline.className = "secondary";
+        decline.textContent = "見送る";
+        decline.addEventListener("click", () => {
+          application.status = "declined";
+          if (listing.matchedApplicationId === application.id) {
+            listing.matchedApplicationId = null;
+          }
+          saveState();
+          renderApplications();
+          renderListings();
+        });
+        actions.append(accept, decline);
+      } else {
+        const revert = document.createElement("button");
+        revert.type = "button";
+        revert.className = "secondary";
+        revert.textContent = statusKey === "accepted" ? "成立を取り消す" : "見送りを取り消す";
+        revert.addEventListener("click", () => {
+          if (statusKey === "accepted" && listing.matchedApplicationId === application.id) {
+            listing.matchedApplicationId = null;
+          }
+          application.status = "pending";
+          saveState();
+          renderApplications();
+          renderListings();
+        });
+        actions.append(revert);
+      }
+    }
 
     const del = document.createElement("button");
     del.className = "danger";
     del.type = "button";
     del.textContent = "削除";
     del.addEventListener("click", () => {
-      state.applications = state.applications.filter((item) => item.id !== application.id);
+      if (listing && listing.matchedApplicationId === application.id) {
+        listing.matchedApplicationId = null;
+      }
+      state.applications = state.applications.filter((entry) => entry.id !== application.id);
       saveState();
       renderApplications();
+      renderListings();
     });
+    actions.append(del);
 
-    item.append(title, meta, message, del);
+    item.append(actions);
     elements.applicationList.append(item);
   });
 }
+
+let activeApplicationTarget = null;
 
 function startApplication(listing) {
   elements.privateNotice.textContent = "";
@@ -3627,9 +3502,23 @@ function startApplication(listing) {
     return;
   }
 
+  const isYouth = isYouthCategory(listing.category);
+  elements.applicationYouthConfirm.hidden = !isYouth;
+  elements.applicationAdultConfirmed.required = isYouth;
+  elements.applicationAdultConfirmed.checked = false;
+
+  activeApplicationTarget = listing;
+  const isPublic = Boolean(listing.isPublic);
+  elements.publicApplyFields.hidden = !isPublic;
+  elements.applicationForm.elements.contact.required = isPublic;
+  elements.applicationForm.elements.contact.value = "";
+  elements.applicationForm.elements.applicantName.value = isPublic ? state.team?.name || "" : "";
+
   elements.applicationForm.hidden = false;
   elements.applicationForm.elements.listingId.value = listing.id;
-  elements.applicationTarget.textContent = `応募先: ${listing.title}`;
+  elements.applicationTarget.textContent = isPublic
+    ? `応募先(公開募集): ${listing.title}`
+    : `応募先: ${listing.title}`;
   elements.applicationForm.elements.message.value = "";
   elements.applicationForm.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -3728,26 +3617,26 @@ function renderFacilities() {
     const createListing = document.createElement("button");
     createListing.type = "button";
     createListing.className = "secondary";
-    createListing.textContent = "この施設で募集";
+    createListing.textContent = "この施設で募集を作成";
     createListing.addEventListener("click", () => {
       prefillListingFromFacility(facility);
     });
     actions.append(createListing);
 
-    if (facility.source !== "catalog") {
-      const del = document.createElement("button");
-      del.className = "danger";
-      del.type = "button";
-      del.textContent = "削除";
-      del.addEventListener("click", () => {
-        state.facilities = state.facilities.filter((item) => item.id !== facility.id);
-        saveState();
-        updateMunicipalitySelect();
-        updateFacilitySearchMunicipalitySelect();
-        render();
-      });
-      actions.append(del);
-    }
+    const hideButton = document.createElement("button");
+    hideButton.className = "secondary";
+    hideButton.type = "button";
+    hideButton.textContent = "非表示";
+    hideButton.title = "一覧から隠します(「非表示にした施設」からいつでも戻せます)";
+    hideButton.addEventListener("click", () => {
+      if (!state.hiddenFacilityIds.includes(facility.id)) {
+        state.hiddenFacilityIds.push(facility.id);
+      }
+      saveState();
+      renderFacilities();
+      renderHiddenFacilities();
+    });
+    actions.append(hideButton);
 
     item.append(top, meta, notes, actions);
     elements.facilityList.append(item);
@@ -3768,29 +3657,140 @@ function renderCounts() {
 }
 
 function makeShareText(listing) {
+  const venueLine = listing.facilityName ? `\n会場: ${listing.facilityName}` : "";
   return `【Hoop Match ${typeLabels[listing.type]}】\n${listing.title}\n地域: ${
     buildArea(listing)
-  }\n日程: ${listing.date}\nカテゴリ: ${listing.category}\nレベル: ${
+  }\n日程: ${listing.date}${venueLine}\nカテゴリ: ${listing.category}\nレベル: ${
     listing.level
   }\n体育館: ${listing.courtReserved ? "確保済み" : "未確保"}\n参加費: ${
     listing.fee || "未設定"
-  }\n詳細: ${listing.notes || "未入力"}`;
+  }\n詳細: ${listing.notes || "未入力"}${appUrlLine()}`;
 }
 
-function handleListingSubmit(event) {
+// 共有文の末尾に付けるアプリへのリンク(Web公開時のみ)。
+// LINE等で共有された相手がそのままアプリを開けるようにする(全国への拡散導線)。
+function appUrlLine() {
+  if (!location.protocol.startsWith("http")) return "";
+  return `\n\n▼募集を見る・応募はこちら(Hoop Match)\n${location.origin}${location.pathname}`;
+}
+
+// ===== 「前回の訪問から増えた募集」バッジ =====
+// 見た募集IDの集合をlocalStorage(バックアップ対象外の閲覧状態)に保持し、
+// 今回表示分との差分を数える。初回訪問はバッジを出さない(全部が新着でノイズになるため)。
+const SEEN_KEY = "hoop-match-seen-v1";
+
+function loadSeenListingIds() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(SEEN_KEY));
+    if (parsed && Array.isArray(parsed.ids)) return parsed.ids;
+  } catch {
+    // 壊れていたら初回扱い
+  }
+  return null;
+}
+
+function currentListingIds() {
+  return [...state.listings.map((l) => l.id), ...publicListings.map((l) => l.id)];
+}
+
+function updateNewSinceBadge() {
+  if (!elements.newSinceLastVisit) return;
+  const seen = loadSeenListingIds();
+  const ids = currentListingIds();
+  if (seen === null) {
+    // 初回訪問: バッジは出さず、現状を「見た」として記録
+    localStorage.setItem(SEEN_KEY, JSON.stringify({ ids, updatedAt: new Date().toISOString() }));
+    elements.newSinceLastVisit.hidden = true;
+    return;
+  }
+  const seenSet = new Set(seen);
+  const newCount = ids.filter((id) => !seenSet.has(id)).length;
+  if (newCount > 0) {
+    elements.newSinceLastVisit.textContent = `前回から +${newCount}件`;
+    elements.newSinceLastVisit.hidden = false;
+  } else {
+    elements.newSinceLastVisit.hidden = true;
+  }
+}
+
+// このページ表示を「見た」として保存する(次回訪問との比較基準になる)。
+// バッジ自体は今回の表示中は出たままにするため、表示計算の後に保存する。
+function markListingsSeen() {
+  localStorage.setItem(
+    SEEN_KEY,
+    JSON.stringify({ ids: currentListingIds(), updatedAt: new Date().toISOString() }),
+  );
+}
+
+async function handleListingSubmit(event) {
   event.preventDefault();
   const data = Object.fromEntries(new FormData(elements.listingForm));
+
+  // U12/U15/U18の募集は18歳以上の代表者確認が必須(required属性の保険)
+  if (isYouthCategory(data.category) && data.adultConfirmed !== "on") {
+    updateListingYouthConfirm();
+    elements.listingAdultConfirmed.focus();
+    return;
+  }
+
+  // 公開募集: サーバーへ送信し、管理キーを端末内に保存する
+  if (data.visibility === "public") {
+    if (!publicApiEnabled()) {
+      window.alert(
+        "公開募集はまだ設定されていません。docs/backend-setup.md の手順でサーバー設定を行ってください。",
+      );
+      return;
+    }
+    if (data.termsAgree !== "on") {
+      window.alert("公開募集には利用規約とプライバシーポリシーへの同意が必要です。");
+      elements.publicTermsAgree.focus();
+      return;
+    }
+    try {
+      const result = await submitPublicListing(data);
+      state.myPublicListings.unshift({
+        id: result.id,
+        manageKey: result.manage_key,
+        title: data.title,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      });
+      saveState();
+      elements.listingForm.reset();
+      updateListingYouthConfirm();
+      updateVisibilityUI();
+      setListingFacility(null);
+      renderMyPublicListings();
+      window.alert(
+        "公開募集を送信しました。運営者の承認後に全国へ公開されます。\n応募の確認と募集の終了は「非公開の応募メッセージ」内の「自分の公開募集」から行えます(管理キーはこの端末に保存済み)。",
+      );
+    } catch (error) {
+      window.alert(`公開募集を送信できませんでした: ${error.message}`);
+    }
+    return;
+  }
+
   const newListing = {
     id: crypto.randomUUID(),
     ...data,
     area: buildArea(data),
     weekday: data.weekday || getWeekdayLabel(data.date),
     courtReserved: data.courtReserved === "on",
+    adultConfirmed: data.adultConfirmed === "on",
     createdAt: new Date().toISOString(),
   };
+  if (!newListing.facilityId) delete newListing.facilityId;
+  if (!newListing.facilityName) delete newListing.facilityName;
+  delete newListing.visibility;
+  delete newListing.termsAgree;
+  // 登録済みチームの情報を募集カードに表示できるよう添付する
+  const teamSnapshot = makeTeamSnapshot();
+  if (teamSnapshot) newListing.team = teamSnapshot;
   state.listings.unshift(newListing);
   saveState();
   elements.listingForm.reset();
+  updateListingYouthConfirm();
+  setListingFacility(null);
   updateMunicipalitySelect();
   updateFacilitySearchMunicipalitySelect();
   updateListingMunicipalitySelect();
@@ -3826,19 +3826,39 @@ function showTeamEditor() {
   elements.teamFields.hidden = false;
 }
 
+function setListingFacility(facility) {
+  elements.listingForm.elements.facilityId.value = facility?.id || "";
+  elements.listingForm.elements.facilityName.value = facility?.name || "";
+  if (facility) {
+    elements.listingFacilityBannerText.textContent = `利用予定施設: ${facility.name}（${buildArea(facility)}）`;
+    elements.listingFacilityBanner.hidden = false;
+  } else {
+    elements.listingFacilityBannerText.textContent = "";
+    elements.listingFacilityBanner.hidden = true;
+  }
+}
+
 function prefillListingFromFacility(facility) {
   elements.listingForm.elements.prefecture.value = facility.prefecture || "";
   updateListingMunicipalitySelect();
   elements.listingForm.elements.municipality.value = facility.municipality || "";
   elements.listingForm.elements.courtReserved.checked = true;
+  setListingFacility(facility);
 
   const currentNotes = elements.listingForm.elements.notes.value.trim();
-  const facilityNote = `利用予定施設: ${facility.name}（${buildArea(facility)}）`;
-  elements.listingForm.elements.notes.value = currentNotes
-    ? `${currentNotes}\n${facilityNote}`
-    : facilityNote;
+  const facilityUrl = facility.url || facility.reservationUrl || "";
+  const facilityNote = `利用予定施設: ${facility.name}（${buildArea(facility)}）${
+    facilityUrl ? `\n施設情報: ${facilityUrl}` : ""
+  }`;
+  if (!currentNotes.includes(`利用予定施設: ${facility.name}`)) {
+    elements.listingForm.elements.notes.value = currentNotes
+      ? `${currentNotes}\n${facilityNote}`
+      : facilityNote;
+  }
   switchAppView("listings");
   elements.listingForm.scrollIntoView({ behavior: "smooth", block: "start" });
+  elements.listingForm.classList.add("form-highlight");
+  setTimeout(() => elements.listingForm.classList.remove("form-highlight"), 1600);
 }
 
 function setListingFilterControls(type, { includePast = true } = {}) {
@@ -3945,10 +3965,14 @@ function handleSummaryAction(action) {
   showListingCollection(action, { includePast: true });
 }
 
-function handleApplicationSubmit(event) {
+async function handleApplicationSubmit(event) {
   event.preventDefault();
   const data = Object.fromEntries(new FormData(elements.applicationForm));
-  const listing = state.listings.find((item) => item.id === data.listingId);
+  const listing =
+    activeApplicationTarget && activeApplicationTarget.id === data.listingId
+      ? activeApplicationTarget
+      : state.listings.find((item) => item.id === data.listingId) ||
+        publicListings.find((item) => item.id === data.listingId);
 
   if (!listing) {
     elements.privateNotice.textContent = "応募先の募集が見つかりません。";
@@ -3961,21 +3985,77 @@ function handleApplicationSubmit(event) {
     return;
   }
 
+  if (isYouthCategory(listing.category) && data.adultConfirmed !== "on") {
+    elements.privateNotice.textContent =
+      "U12/U15/U18の募集への応募には、18歳以上の代表者としての確認が必要です。";
+    return;
+  }
+
+  if (listing.isPublic) {
+    const contact = (data.contact || "").trim();
+    if (!contact) {
+      elements.privateNotice.textContent =
+        "公開募集への応募には、募集者に伝える連絡先(成人代表者のもの)が必要です。";
+      return;
+    }
+    elements.privateNotice.textContent = "送信中…";
+    try {
+      await sbRpc("submit_application", {
+        p_listing_id: listing.id,
+        p_message: data.message.trim(),
+        p_contact: contact,
+        p_applicant_name: (data.applicantName || "").trim() || null,
+        p_adult_confirmed: data.adultConfirmed === "on",
+      });
+    } catch (error) {
+      elements.privateNotice.textContent = `送信できませんでした: ${error.message}`;
+      return;
+    }
+    // 控えとして端末内にも保存する(連絡先は端末外に出るのは募集者のみ)
+    state.applications.unshift({
+      id: crypto.randomUUID(),
+      listingId: listing.id,
+      listingTitle: listing.title,
+      listingType: listing.type,
+      teamName: state.team?.name || "",
+      adultConfirmed: data.adultConfirmed === "on",
+      message: data.message.trim(),
+      createdAt: new Date().toISOString(),
+      private: true,
+      sentToPublic: true,
+    });
+    saveState();
+    elements.applicationForm.reset();
+    elements.applicationForm.hidden = true;
+    elements.publicApplyFields.hidden = true;
+    activeApplicationTarget = null;
+    elements.privateNotice.textContent =
+      "公開募集に応募を送信しました。募集者が確認すると、記入した連絡先へ連絡が来ます(控えを端末内に保存しました)。";
+    renderApplications();
+    return;
+  }
+
   state.applications.unshift({
     id: crypto.randomUUID(),
     listingId: listing.id,
     listingTitle: listing.title,
     listingType: listing.type,
     teamName: state.team?.name || "",
+    applicantTeam: makeTeamSnapshot(),
+    adultConfirmed: data.adultConfirmed === "on",
     message: data.message.trim(),
     createdAt: new Date().toISOString(),
     private: true,
+    status: "pending",
+    replies: [],
   });
   saveState();
   elements.applicationForm.reset();
   elements.applicationForm.hidden = true;
-  elements.privateNotice.textContent = "送信内容をこの端末内に非公開で保存しました。";
+  elements.privateNotice.textContent =
+    "送信内容をこの端末内に非公開で保存しました。下の応募メッセージから返信・マッチング成立の操作ができます。";
   renderApplications();
+  renderListings();
 }
 
 function handleFacilitySubmit(event) {
@@ -3994,8 +4074,20 @@ function handleFacilitySubmit(event) {
   render();
 }
 
+function setDataStatus(message, isError = false) {
+  if (!elements.dataStatus) return;
+  elements.dataStatus.textContent = message;
+  elements.dataStatus.classList.toggle("error-text", isError);
+}
+
 function exportData() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], {
+  const payload = {
+    app: "hoop-match",
+    formatVersion: 1,
+    exportedAt: new Date().toISOString(),
+    data: state,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json",
   });
   const url = URL.createObjectURL(blob);
@@ -4004,25 +4096,72 @@ function exportData() {
   link.download = `hoop-match-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(url);
+  setDataStatus(
+    `バックアップを書き出しました (募集${state.listings.length}件 / 追加施設${state.facilities.length}件 / 応募${state.applications.length}件 / 公開募集の管理キー${state.myPublicListings.length}件)。`,
+  );
 }
 
 async function importData(event) {
   const [file] = event.target.files;
   if (!file) return;
 
-  const text = await file.text();
-  const imported = JSON.parse(text);
-  state = normalizeState({
-    listings: Array.isArray(imported.listings) ? imported.listings : [],
-    facilities: Array.isArray(imported.facilities) ? imported.facilities : [],
-    team: imported.team || null,
-    applications: Array.isArray(imported.applications) ? imported.applications : [],
-  });
-  saveState();
-  updateMunicipalitySelect();
-  updateFacilitySearchMunicipalitySelect();
-  render();
-  event.target.value = "";
+  try {
+    const text = await file.text();
+    let imported;
+    try {
+      imported = JSON.parse(text);
+    } catch {
+      setDataStatus("読み込み失敗: JSONとして解析できないファイルです。", true);
+      return;
+    }
+
+    // 新形式 { app, formatVersion, data } と旧形式(stateそのまま)の両方に対応
+    const source = imported && typeof imported === "object" && imported.data && imported.app === "hoop-match"
+      ? imported.data
+      : imported;
+
+    const listings = Array.isArray(source?.listings) ? source.listings : null;
+    const facilities = Array.isArray(source?.facilities) ? source.facilities : null;
+    if (!listings && !facilities && !source?.team && !Array.isArray(source?.applications)) {
+      setDataStatus("読み込み失敗: Hoop Matchのバックアップ形式ではありません。", true);
+      return;
+    }
+
+    const hasCurrentData =
+      state.listings.length > 0 ||
+      state.facilities.length > 0 ||
+      state.applications.length > 0 ||
+      state.team;
+    if (hasCurrentData) {
+      const confirmed = window.confirm(
+        "現在この端末に保存されているデータは、読み込むファイルの内容で置き換えられます。続行しますか?",
+      );
+      if (!confirmed) {
+        setDataStatus("読み込みをキャンセルしました。");
+        return;
+      }
+    }
+
+    state = normalizeState({
+      listings: listings || [],
+      facilities: facilities || [],
+      team: source.team || null,
+      applications: Array.isArray(source.applications) ? source.applications : [],
+      myPublicListings: Array.isArray(source.myPublicListings) ? source.myPublicListings : [],
+      hiddenFacilityIds: Array.isArray(source.hiddenFacilityIds) ? source.hiddenFacilityIds : [],
+    });
+    saveState();
+    updateMunicipalitySelect();
+    updateFacilitySearchMunicipalitySelect();
+    render();
+    setDataStatus(
+      `読み込み完了: 募集${state.listings.length}件 / 追加施設${state.facilities.length}件 / 応募${state.applications.length}件を復元しました。`,
+    );
+  } catch (error) {
+    setDataStatus(`読み込み失敗: ${error.message}`, true);
+  } finally {
+    event.target.value = "";
+  }
 }
 
 function setupRegionControls() {
@@ -4115,8 +4254,20 @@ elements.applicationForm.addEventListener("submit", handleApplicationSubmit);
 elements.cancelApplication.addEventListener("click", () => {
   elements.applicationForm.reset();
   elements.applicationForm.hidden = true;
+  elements.publicApplyFields.hidden = true;
+  activeApplicationTarget = null;
 });
 elements.listingForm.addEventListener("submit", handleListingSubmit);
+elements.listingForm.elements.category.addEventListener("change", updateListingYouthConfirm);
+elements.listingVisibility.addEventListener("change", updateVisibilityUI);
+elements.reloadPublic.addEventListener("click", () => loadPublicListings());
+elements.restoreAllFacilities.addEventListener("click", () => {
+  state.hiddenFacilityIds = [];
+  saveState();
+  renderFacilities();
+  renderHiddenFacilities();
+});
+elements.clearListingFacility.addEventListener("click", () => setListingFacility(null));
 elements.facilityForm.addEventListener("submit", handleFacilitySubmit);
 elements.exportData.addEventListener("click", exportData);
 elements.importData.addEventListener("change", importData);
@@ -4125,5 +4276,31 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./service-worker.js").catch(() => {});
 }
 
+// アクセス解析(任意): data/config.js の gaMeasurementId を設定すると有効化。
+// 未設定なら何も読み込まない(既定はトラッキングなし)。
+function setupAnalytics() {
+  const id = window.HOOP_CONFIG?.gaMeasurementId;
+  if (!id || !location.protocol.startsWith("http")) return;
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`;
+  document.head.append(script);
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function gtag() { window.dataLayer.push(arguments); };
+  window.gtag("js", new Date());
+  window.gtag("config", id, { anonymize_ip: true });
+}
+
+setupAnalytics();
+updateNewSinceBadge();
+markListingsSeen();
 setupRegionControls();
+updateListingYouthConfirm();
+updateVisibilityUI();
+renderMyPublicListings();
+renderHiddenFacilities();
+if (publicApiEnabled()) {
+  elements.publicToolbar.hidden = false;
+  loadPublicListings({ silent: true });
+}
 render();
