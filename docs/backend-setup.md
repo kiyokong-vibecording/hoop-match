@@ -75,6 +75,17 @@ Supabase左メニュー「Table Editor」で行います。
 | 通報の確認 | `reports` テーブルを確認 → 問題があれば該当募集を `closed`/`rejected` |
 | 削除依頼対応 | `public_listings` の該当行を削除(応募も自動で消えます) |
 
+### 自動モデレーション(2026-07-05から)
+
+一般カテゴリの安全な投稿は**即時公開**されます。次に該当する投稿だけが
+承認待ち(pending)になり、あなたの確認を待ちます:
+- U12/U15/U18カテゴリ(子ども関連はすべて事前確認・自動公開しない)
+- 電話番号・メールアドレス・URL・LINE ID交換らしき記載を含む
+- 出会い目的・副業/投資勧誘などのスパム疑い語を含む
+
+即時公開された投稿も、通報や巡回で問題を見つけたら status を
+closed/rejected に変更して非公開にできます(事後対応)。
+
 承認の目安(チェックポイント):
 - 個人情報(氏名・電話番号・住所・学校名・SNSの個人アカウント等)が本文にない
 - U12/U15/U18は内容が成人代表者による投稿として妥当
@@ -89,3 +100,19 @@ Supabase左メニュー「Table Editor」で行います。
   Edge FunctionsやCloudflare Turnstileの導入を検討してください
 - 応募にはメールアドレス等の連絡先が含まれます。プライバシーポリシーの
   記載(保存先・閲覧範囲・削除依頼窓口)を必ず実態に合わせてください
+
+
+## トラブルシューティング
+
+### 「function gen_random_bytes(integer) does not exist」と出る
+Supabaseでは暗号化関数(pgcrypto)が `extensions` スキーマに置かれるため、
+SECURITY DEFINER関数から見えないことがあります。schema.sqlは次の対策済みです:
+- `create extension ... with schema extensions`
+- 関数に `set search_path = public, extensions`
+- 呼び出しを `extensions.gen_random_bytes(...)` / `extensions.digest(...)` と明示
+古いスキーマで作成済みの場合は、schema.sqlの関数定義部分(submit_listing /
+get_my_listing_detail / close_listing)を再実行すれば上書きされて直ります。
+
+### 「Invalid path specified in request URL」と出る
+data/config.js の supabaseUrl は `https://xxxx.supabase.co` まで(末尾スラッシュや
+`/rest/v1/` を付けない)。アプリ側が自動でパスを付与します。

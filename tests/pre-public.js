@@ -17,7 +17,11 @@ window.fetch = async (url, options = {}) => {
         court_reserved: false, notes: "", facility_name: "", adult_confirmed: true, status: "approved" },
     ]);
   }
-  if (u.includes("/rpc/submit_listing")) return ok({ id: "new-123", manage_key: "key-abc" });
+  if (u.includes("/rpc/submit_listing")) {
+    // タイトルに「即時」を含む投稿は自動承認された想定、それ以外は承認待ち想定
+    const approved = options.body && String(options.body).includes("即時");
+    return ok({ id: "new-123", manage_key: "key-abc", status: approved ? "approved" : "pending" });
+  }
   if (u.includes("/rpc/submit_application")) return ok({ ok: true });
   if (u.includes("/rpc/report_listing")) return ok({ ok: true });
   if (u.includes("/rpc/get_my_listing_detail")) return ok({ id: "new-123", title: "t", status: "approved",

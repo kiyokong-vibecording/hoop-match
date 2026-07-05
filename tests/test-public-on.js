@@ -51,7 +51,24 @@ window.addEventListener("load", async () => {
     await handleListingSubmit(new Event("submit", { cancelable: true }));
     t("submit_listing_called", calls.some((c) => c.url.includes("/rpc/submit_listing") && c.body.p_title === "公開投稿テスト"));
     t("manage_key_saved", state.myPublicListings.length === 1 && state.myPublicListings[0].manageKey === "key-abc");
-    t("saved_to_localstorage", JSON.parse(localStorage.getItem("hoop-match-v1")).myPublicListings.length === 1);
+    t("pending_message_shown", alerts.some((m) => m.includes("承認後に全国へ公開")));
+    t("status_saved_as_pending", state.myPublicListings[0].status === "pending");
+
+    // 自動承認(即時公開)されるケース: サーバーがstatus=approvedを返す
+    form.elements.type.value = "opponent";
+    form.elements.category.value = "一般";
+    form.elements.level.value = "エンジョイ";
+    form.elements.title.value = "即時公開テスト";
+    form.elements.prefecture.value = "東京都";
+    form.elements.municipality.value = "新宿区";
+    form.elements.date.value = "2026-09-02";
+    document.getElementById("listingVisibility").value = "public";
+    document.getElementById("listingVisibility").dispatchEvent(new Event("change"));
+    document.getElementById("publicTermsAgree").checked = true;
+    await handleListingSubmit(new Event("submit", { cancelable: true }));
+    t("approved_message_shown", alerts.some((m) => m.includes("すでに全国へ公開")));
+    t("status_saved_as_approved", state.myPublicListings[0].status === "approved");
+    t("saved_to_localstorage", JSON.parse(localStorage.getItem("hoop-match-v1")).myPublicListings.length === 2);
     t("my_public_section_visible", document.getElementById("myPublicSection").hidden === false);
     t("form_back_to_local", document.getElementById("listingVisibility").value === "local" && document.getElementById("publicConsentBox").hidden === true);
 

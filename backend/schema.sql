@@ -13,7 +13,7 @@
 -- 適用方法: SupabaseのSQL Editorにこのファイル全文を貼り付けて実行。
 -- =====================================================================
 
-create extension if not exists pgcrypto;
+create extension if not exists pgcrypto with schema extensions;
 
 -- ---------------------------------------------------------------------
 -- テーブル
@@ -116,31 +116,62 @@ create or replace function submit_listing(
   p_facility_name text,
   p_adult_confirmed boolean
 ) returns json
-language plpgsql security definer set search_path = public
+language plpgsql security definer set search_path = public, extensions
 as $$
 declare
   v_key text;
   v_id uuid;
+  v_text text;
+  v_status text;
 begin
   -- U12/U15/U18は成人代表者の確認が必須
   if p_category ~ '^U1[258]' and not coalesce(p_adult_confirmed, false) then
     raise exception 'youth listing requires adult confirmation';
   end if;
 
-  v_key := encode(gen_random_bytes(24), 'hex');
+  -- ============== 自動モデレーション ==============
+  -- 安全な投稿は即時公開(approved)、リスクのある投稿は承認待ち(pending)。
+  -- 判定はサーバー側で行うため、クライアントから回避できない。
+  v_text := coalesce(p_title, '') || ' ' || coalesce(p_notes, '') || ' ' ||
+            coalesce(p_fee, '') || ' ' || coalesce(p_facility_name, '');
+  v_status := 'approved';
+
+  -- 1) 子ども関連(U12/U15/U18)は必ず事前承認(安全最優先・自動公開しない)
+  if p_category ~ '^U1[258]' then
+    v_status := 'pending';
+  end if;
+
+  -- 2) 個人情報らしきもの(電話番号・メール・URL・LINE ID交換)を含む場合は承認待ち
+  --    規約で本文への個人情報記載は禁止のため、人の目で確認する
+  if v_text ~ '0\d{1,4}[-()\s]?\d{1,4}[-()\s]?\d{3,4}'
+     or v_text ~* '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+'
+     or v_text ~* 'https?://'
+     or v_text ~* '(LINE|ライン|ＬＩＮＥ)\s*の?\s*(ID|iD|アイデ)'
+  then
+    v_status := 'pending';
+  end if;
+
+  -- 3) 目的外利用・スパムの疑いがある語を含む場合は承認待ち
+  if v_text ~* '(出会い|恋人|彼氏募集|彼女募集|パパ活|副業|稼げ|高収入|投資|仮想通貨|マルチ商法|ネットワークビジネス|MLM|宗教|保険の勧誘)'
+  then
+    v_status := 'pending';
+  end if;
+  -- ================================================
+
+  v_key := encode(extensions.gen_random_bytes(24), 'hex');
 
   insert into public_listings (
     type, category, title, prefecture, municipality, area, date, weekday,
     level, fee, court_reserved, notes, facility_name, adult_confirmed,
-    manage_key_hash
+    status, manage_key_hash
   ) values (
     p_type, p_category, p_title, p_prefecture, p_municipality, p_area,
     p_date, p_weekday, p_level, p_fee, coalesce(p_court_reserved, false),
     p_notes, p_facility_name, coalesce(p_adult_confirmed, false),
-    encode(digest(v_key, 'sha256'), 'hex')
+    v_status, encode(extensions.digest(v_key, 'sha256'), 'hex')
   ) returning id into v_id;
 
-  return json_build_object('id', v_id, 'manage_key', v_key);
+  return json_build_object('id', v_id, 'manage_key', v_key, 'status', v_status);
 end;
 $$;
 
@@ -152,7 +183,7 @@ create or replace function submit_application(
   p_applicant_name text,
   p_adult_confirmed boolean
 ) returns json
-language plpgsql security definer set search_path = public
+language plpgsql security definer set search_path = public, extensions
 as $$
 declare
   v_listing public_listings%rowtype;
@@ -181,7 +212,7 @@ create or replace function get_my_listing_detail(
   p_listing_id uuid,
   p_manage_key text
 ) returns json
-language plpgsql security definer set search_path = public
+language plpgsql security definer set search_path = public, extensions
 as $$
 declare
   v_listing public_listings%rowtype;
@@ -189,7 +220,7 @@ declare
 begin
   select * into v_listing from public_listings
     where id = p_listing_id
-      and manage_key_hash = encode(digest(p_manage_key, 'sha256'), 'hex');
+      and manage_key_hash = encode(extensions.digest(p_manage_key, 'sha256'), 'hex');
   if not found then
     raise exception 'listing not found or invalid manage key';
   end if;
@@ -219,7 +250,7 @@ create or replace function close_listing(
   p_listing_id uuid,
   p_manage_key text
 ) returns json
-language plpgsql security definer set search_path = public
+language plpgsql security definer set search_path = public, extensions
 as $$
 declare
   v_count int;
@@ -227,7 +258,7 @@ begin
   update public_listings
     set status = 'closed'
     where id = p_listing_id
-      and manage_key_hash = encode(digest(p_manage_key, 'sha256'), 'hex')
+      and manage_key_hash = encode(extensions.digest(p_manage_key, 'sha256'), 'hex')
       and status in ('pending', 'approved');
   get diagnostics v_count = row_count;
   if v_count = 0 then
@@ -242,7 +273,7 @@ create or replace function report_listing(
   p_listing_id uuid,
   p_reason text
 ) returns json
-language plpgsql security definer set search_path = public
+language plpgsql security definer set search_path = public, extensions
 as $$
 begin
   insert into reports (listing_id, reason) values (p_listing_id, p_reason);
@@ -258,6 +289,8 @@ grant execute on function report_listing(uuid, text) to anon;
 
 -- =====================================================================
 -- 管理者の運用メモ (SupabaseのTable Editorで行う)
+-- - 自動モデレーション: 一般カテゴリの安全な投稿は即時公開(approved)。
+--   U12/U15/U18、個人情報らしき記載、スパム疑い語を含む投稿はpendingで保留
 -- - 承認: public_listings の status を 'pending' → 'approved' に変更
 -- - 却下: status を 'rejected' に変更(公開されない)
 -- - 通報対応: reports を確認し、必要なら該当募集を 'closed' / 'rejected' に

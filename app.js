@@ -3748,11 +3748,12 @@ async function handleListingSubmit(event) {
     }
     try {
       const result = await submitPublicListing(data);
+      const resultStatus = result.status || "pending";
       state.myPublicListings.unshift({
         id: result.id,
         manageKey: result.manage_key,
         title: data.title,
-        status: "pending",
+        status: resultStatus,
         createdAt: new Date().toISOString(),
       });
       saveState();
@@ -3761,9 +3762,16 @@ async function handleListingSubmit(event) {
       updateVisibilityUI();
       setListingFacility(null);
       renderMyPublicListings();
-      window.alert(
-        "公開募集を送信しました。運営者の承認後に全国へ公開されます。\n応募の確認と募集の終了は「非公開の応募メッセージ」内の「自分の公開募集」から行えます(管理キーはこの端末に保存済み)。",
-      );
+      if (resultStatus === "approved") {
+        window.alert(
+          "公開募集を投稿しました。すでに全国へ公開されています!\n応募の確認と募集の終了は「非公開の応募メッセージ」内の「自分の公開募集」から行えます(管理キーはこの端末に保存済み)。",
+        );
+        loadPublicListings({ silent: true });
+      } else {
+        window.alert(
+          "公開募集を送信しました。内容確認のうえ、運営者の承認後に全国へ公開されます。\n応募の確認と募集の終了は「非公開の応募メッセージ」内の「自分の公開募集」から行えます(管理キーはこの端末に保存済み)。",
+        );
+      }
     } catch (error) {
       window.alert(`公開募集を送信できませんでした: ${error.message}`);
     }

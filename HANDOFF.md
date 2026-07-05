@@ -519,3 +519,32 @@ node scripts/build-facilities.js で再生成すること。)
 - tests/README.md: 実行方法・一覧・書き方のルール
 - **運用ルール: コード変更後はコミット前に `bash tests/run.sh` を必ず実行**
 - キャッシュバスターv38
+
+## 2026-07-05 backend/schema.sql のpgcrypto解決を修正(実公開時のバグ)
+
+ユーザーの実Supabaseで公開投稿時に function gen_random_bytes(integer) does not exist。
+原因: Supabaseはpgcryptoをextensionsスキーマに置くが、SECURITY DEFINER関数の
+search_pathがpublicのみだったため解決できず。
+修正(3重): create extension ... with schema extensions / 全RPCに
+set search_path = public, extensions / gen_random_bytes・digestをextensions.付き明示。
+既存プロジェクトはsubmit_listing/get_my_listing_detail/close_listingの再実行で修復可能。
+docs/backend-setup.mdにトラブルシュート(本件+末尾スラッシュのInvalid path)追記。
+
+## 2026-07-05 自動モデレーション(ハイブリッド承認)を導入
+
+ユーザー要望: 都度承認の負担を減らしたい(承認が遅れると投稿者が待たされる)。
+
+設計: サーバー側(submit_listing内)で自動判定し、安全な一般投稿は即時公開
+(status=approved)、以下のみpendingで人の確認へ:
+1. U12/U15/U18カテゴリ(子ども関連は必ず事前確認。ここは絶対に緩めない)
+2. 個人情報らしき記載(電話/メール/URL/LINE ID交換の正規表現)
+3. スパム疑い語(出会い/副業/投資/マルチ/宗教勧誘など)
+
+- 判定はSECURITY DEFINER関数内=クライアントから回避不可
+- submit_listingがstatusを返し、アプリは「すでに公開されました」/「承認後に公開」
+  でメッセージを分岐(即時公開時は一覧を自動再読込)
+- terms.htmlの「承認制」文言をハイブリッド方式に更新
+- docs/backend-setup.mdに自動モデレーションの仕様と事後対応を追記
+- テスト: pre-public.jsのスタブがstatusを返すよう更新、即時公開/承認待ちの
+  メッセージ分岐を検証(test-public-on 31項目)。全スイート成功。v39
+- ユーザーの実Supabaseにはsubmit_listing差し替えSQLを案内(会話内)
