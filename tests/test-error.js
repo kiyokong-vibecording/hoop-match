@@ -20,9 +20,10 @@ window.addEventListener("load", async () => {
     window.alert = (m) => alerts.push(m);
     const form = document.getElementById("listingForm");
     form.elements.type.value = "opponent";
-    form.elements.category.value = "一般";
+    form.elements.category.value = "社会人同好会";
     form.elements.title.value = "エラーテスト";
     form.elements.prefecture.value = "東京都";
+    form.elements.prefecture.dispatchEvent(new Event("input"));
     form.elements.municipality.value = "新宿区";
     form.elements.date.value = "2026-09-01";
     form.elements.level.value = "エンジョイ";

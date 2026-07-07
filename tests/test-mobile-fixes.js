@@ -103,6 +103,42 @@ window.addEventListener("load", async () => {
     const osakaCards = [...document.querySelectorAll("#facilityList .facility-item")];
     t("opas_labola_no_user_badge", osakaCards.length >= 3 && osakaCards.every((it) => ![...it.querySelectorAll(".facility-tag")].some((tag) => tag.classList.contains("user-added"))));
 
+    // 8) 公開送信の堅牢化: 市区町村未選択なら具体的な案内、送信時は全キーが含まれる
+    let alerts = [];
+    window.alert = (m) => alerts.push(m);
+    const lf = document.getElementById("listingForm");
+    lf.reset();
+    lf.elements.type.value = "member";
+    lf.elements.category.selectedIndex = 1;
+    lf.elements.title.value = "堅牢化テスト";
+    lf.elements.prefecture.value = "東京都"; // changeを発火しない=市区町村がdisabledのまま(欠落状況の再現)
+    lf.elements.level.selectedIndex = 1;
+    document.getElementById("listingVisibility").value = "public";
+    document.getElementById("listingVisibility").dispatchEvent(new Event("change"));
+    document.getElementById("publicTermsAgree").checked = true;
+    document.getElementById("listingAdultConfirmed").checked = true;
+    await handleListingSubmit(new Event("submit", { cancelable: true }));
+    t("missing_field_guided", alerts.some((m) => m.includes("市区町村")));
+    t("not_sent_when_missing", !calls.some((c) => c.url.includes("submit_listing") && c.body.p_title === "堅牢化テスト"));
+
+    // 市区町村を有効化して選択→送信され、全キーが含まれる
+    lf.elements.prefecture.dispatchEvent(new Event("input"));
+    const muniOpts = lf.elements.municipality.options;
+    if (muniOpts.length > 1) lf.elements.municipality.selectedIndex = 1;
+    lf.elements.type.value = "member";
+    lf.elements.category.selectedIndex = 1;
+    lf.elements.title.value = "堅牢化テスト";
+    lf.elements.level.selectedIndex = 1;
+    document.getElementById("listingVisibility").value = "public";
+    document.getElementById("listingVisibility").dispatchEvent(new Event("change"));
+    document.getElementById("publicTermsAgree").checked = true;
+    document.getElementById("listingAdultConfirmed").checked = true;
+    await handleListingSubmit(new Event("submit", { cancelable: true }));
+    const sent = calls.find((c) => c.url.includes("submit_listing") && c.body.p_title === "堅牢化テスト");
+    t("sent_after_fix", Boolean(sent));
+    const requiredKeys = ["p_type","p_category","p_title","p_prefecture","p_municipality","p_area","p_date","p_weekday","p_level","p_fee","p_court_reserved","p_notes","p_facility_name","p_adult_confirmed"];
+    t("all_params_present", Boolean(sent) && requiredKeys.every((k) => k in sent.body));
+
     // 後片付け
     state.facilities = state.facilities.filter((f) => f.name !== "テスト体育館");
     saveState();

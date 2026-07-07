@@ -2592,13 +2592,15 @@ async function loadPublicListings({ silent = false } = {}) {
 }
 
 async function submitPublicListing(data) {
+  // すべての引数を必ず含める(undefinedのキーはJSON化で消え、サーバー側で
+  // 「引数が一致する関数が見つからない」という分かりにくいエラーになるため)
   const result = await sbRpc("submit_listing", {
-    p_type: data.type,
-    p_category: data.category,
-    p_title: data.title,
-    p_prefecture: data.prefecture,
-    p_municipality: data.municipality,
-    p_area: buildArea(data),
+    p_type: data.type || null,
+    p_category: data.category || null,
+    p_title: data.title || null,
+    p_prefecture: data.prefecture || null,
+    p_municipality: data.municipality || null,
+    p_area: buildArea(data) || null,
     p_date: data.date || null,
     p_weekday: data.weekday || getWeekdayLabel(data.date) || null,
     p_level: data.level || null,
@@ -4087,6 +4089,15 @@ async function handleListingSubmit(event) {
     if (data.termsAgree !== "on") {
       window.alert("公開募集には利用規約とプライバシーポリシーへの同意が必要です。");
       elements.publicTermsAgree.focus();
+      return;
+    }
+    // 公開に必要な項目のチェック(欠けている項目を具体的に伝える)
+    const missing = [];
+    if (!data.category) missing.push("カテゴリ");
+    if (!data.prefecture) missing.push("都道府県");
+    if (!data.municipality) missing.push("市区町村");
+    if (missing.length > 0) {
+      window.alert(`公開募集には次の項目の選択が必要です: ${missing.join("、")}`);
       return;
     }
     try {
