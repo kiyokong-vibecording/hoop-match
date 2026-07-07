@@ -548,3 +548,29 @@ docs/backend-setup.mdにトラブルシュート(本件+末尾スラッシュの
 - テスト: pre-public.jsのスタブがstatusを返すよう更新、即時公開/承認待ちの
   メッセージ分岐を検証(test-public-on 31項目)。全スイート成功。v39
 - ユーザーの実Supabaseにはsubmit_listing差し替えSQLを案内(会話内)
+
+## 2026-07-05 公開募集のアプリ内やり取り+新着自動チェック
+
+ユーザー要望: (1)「応募を確認」を押さないと応募に気づけない、(2)公開でもアプリ内で返信したい。
+
+### サーバー(backend/schema.sql、RPC計10個に)
+- public_applications.manage_key_hash 追加(応募者キーのハッシュ。submit_applicationが発行して返す)
+- public_replies テーブル新設(application_id / from_role: owner|applicant / message、RLSでanon遮断)
+- 新RPC: reply_to_application(募集キー) / get_my_application_detail・reply_as_applicant(応募キー) /
+  get_my_listings_summary・get_my_applications_summary(新着チェック用バッチ、各1リクエスト・上限50件)
+- get_my_listing_detail の応募に id と replies を含めるよう拡張
+- 返信は1応募につき200件上限。旧応募(キーなし)はmanage_key_hash=nullで照合不成立=安全に非対応
+
+### アプリ
+- 応募控えに applicationId/applicationKey/ownerReplyCount/seenOwnerReplyCount を保存
+- checkPublicInbox(): loadPublicListings成功後に2つのサマリRPCで新着を取得し、
+  「自分の公開募集」カードに新着応募/新着返信、応募カードに新着返信の赤バッジ(.inbox-badge)
+- 募集者: 応募を確認→応募ごとにスレッド(.application-messages再利用)+返信ボックス(reply_to_application)
+- 応募者: 「やり取りを確認」→サーバースレッド表示(ローカル控えはhiddenで二重表示防止)+
+  返信ボックス(reply_as_applicant)。開封で既読化しバッジはその場でremove(全再描画すると
+  開いたスレッドが消えるため renderMyPublicListings は呼ばない — 注意点)
+- 旧形式の応募(キーなし)は従来の連絡先案内のまま(後方互換)
+- privacy.html にやり取り保存の項目を追記
+- テスト: tests/test-public-thread.js(19項目)、pre-public.jsに新RPCスタブ
+  (close後のstatusは実状態連動)。全15スイート成功。v40
+- ユーザーの実Supabaseにはアップグレード用SQLを会話で案内(alter+新テーブル+関数差し替え)

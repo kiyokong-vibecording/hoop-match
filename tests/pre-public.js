@@ -22,10 +22,24 @@ window.fetch = async (url, options = {}) => {
     const approved = options.body && String(options.body).includes("即時");
     return ok({ id: "new-123", manage_key: "key-abc", status: approved ? "approved" : "pending" });
   }
-  if (u.includes("/rpc/submit_application")) return ok({ ok: true });
+  if (u.includes("/rpc/submit_application")) return ok({ ok: true, application_id: "app-1", application_key: "akey-1" });
+  if (u.includes("/rpc/reply_to_application")) return ok({ ok: true });
+  if (u.includes("/rpc/reply_as_applicant")) return ok({ ok: true });
+  if (u.includes("/rpc/get_my_application_detail")) return ok({
+    id: "app-1", listing_title: "公開: 名古屋で5on5", listing_status: "approved",
+    message: "対戦お願いします", created_at: "2026-07-05T00:00:00Z",
+    replies: [{ from_role: "owner", message: "ぜひやりましょう!日程調整しましょう", created_at: "2026-07-05T01:00:00Z" }],
+  });
+  if (u.includes("/rpc/get_my_listings_summary")) return ok([
+    { id: "new-123", ok: true, status: window.__listing123Closed ? "closed" : "approved", application_count: 2, applicant_reply_count: 1 },
+  ]);
+  if (u.includes("/rpc/get_my_applications_summary")) return ok([
+    { id: "app-1", ok: true, listing_status: "approved", owner_reply_count: 1 },
+  ]);
   if (u.includes("/rpc/report_listing")) return ok({ ok: true });
   if (u.includes("/rpc/get_my_listing_detail")) return ok({ id: "new-123", title: "t", status: "approved",
-    applications: [{ created_at: "2026-07-03T00:00:00Z", message: "対戦希望です", contact: "rep@example.com", applicant_name: "Test Reps", adult_confirmed: true }] });
-  if (u.includes("/rpc/close_listing")) return ok({ ok: true });
+    applications: [{ id: "app-1", created_at: "2026-07-03T00:00:00Z", message: "対戦希望です", contact: "rep@example.com", applicant_name: "Test Reps", adult_confirmed: true,
+      replies: [{ from_role: "applicant", message: "よろしくお願いします", created_at: "2026-07-03T01:00:00Z" }] }] });
+  if (u.includes("/rpc/close_listing")) { window.__listing123Closed = true; return ok({ ok: true }); }
   return { ok: false, status: 404, json: async () => ({ message: "not found" }) };
 };

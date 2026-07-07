@@ -51,8 +51,24 @@ create table if not exists public_applications (
   message text not null check (char_length(message) between 1 and 2000),
   contact text not null check (char_length(contact) between 1 and 300),
   applicant_name text check (applicant_name is null or char_length(applicant_name) <= 100),
-  adult_confirmed boolean not null default false
+  adult_confirmed boolean not null default false,
+  -- 応募者に発行するキーのハッシュ(応募者はこのキーで自分の応募スレッドを閲覧・返信できる)
+  manage_key_hash text
 );
+
+alter table public_applications add column if not exists manage_key_hash text;
+
+-- 募集者と応募者のアプリ内やり取り(1応募=1スレッド)
+create table if not exists public_replies (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  application_id uuid not null references public_applications (id) on delete cascade,
+  from_role text not null check (from_role in ('owner', 'applicant')),
+  message text not null check (char_length(message) between 1 and 2000)
+);
+
+create index if not exists idx_public_replies_application
+  on public_replies (application_id, created_at);
 
 create index if not exists idx_public_applications_listing
   on public_applications (listing_id);
@@ -71,6 +87,7 @@ create table if not exists reports (
 alter table public_listings enable row level security;
 alter table public_applications enable row level security;
 alter table reports enable row level security;
+alter table public_replies enable row level security;
 
 -- 公開済みの募集のみ誰でも閲覧可(管理キーのハッシュ列はビュー経由で隠す)
 drop policy if exists "approved listings are public" on public_listings;
@@ -94,6 +111,7 @@ grant select on public_listings_view to anon;
 revoke all on public_listings from anon;
 revoke all on public_applications from anon;
 revoke all on reports from anon;
+revoke all on public_replies from anon;
 
 -- ---------------------------------------------------------------------
 -- RPC関数 (SECURITY DEFINER)
@@ -187,6 +205,8 @@ language plpgsql security definer set search_path = public, extensions
 as $$
 declare
   v_listing public_listings%rowtype;
+  v_key text;
+  v_id uuid;
 begin
   select * into v_listing from public_listings where id = p_listing_id;
   if not found or v_listing.status <> 'approved' then
@@ -196,14 +216,18 @@ begin
     raise exception 'youth listing requires adult confirmation';
   end if;
 
+  -- 応募者キーを発行(応募者はこのキーで自分のスレッドを閲覧・返信できる)
+  v_key := encode(extensions.gen_random_bytes(24), 'hex');
+
   insert into public_applications (
-    listing_id, message, contact, applicant_name, adult_confirmed
+    listing_id, message, contact, applicant_name, adult_confirmed, manage_key_hash
   ) values (
     p_listing_id, p_message, p_contact, p_applicant_name,
-    coalesce(p_adult_confirmed, false)
-  );
+    coalesce(p_adult_confirmed, false),
+    encode(extensions.digest(v_key, 'sha256'), 'hex')
+  ) returning id into v_id;
 
-  return json_build_object('ok', true);
+  return json_build_object('ok', true, 'application_id', v_id, 'application_key', v_key);
 end;
 $$;
 
@@ -226,11 +250,21 @@ begin
   end if;
 
   select coalesce(json_agg(json_build_object(
+      'id', a.id,
       'created_at', a.created_at,
       'message', a.message,
       'contact', a.contact,
       'applicant_name', a.applicant_name,
-      'adult_confirmed', a.adult_confirmed
+      'adult_confirmed', a.adult_confirmed,
+      'replies', (
+        select coalesce(json_agg(json_build_object(
+            'from_role', r.from_role,
+            'message', r.message,
+            'created_at', r.created_at
+          ) order by r.created_at asc), '[]'::json)
+        from public_replies r
+        where r.application_id = a.id
+      )
     ) order by a.created_at desc), '[]'::json)
   into v_apps
   from public_applications a
@@ -268,6 +302,180 @@ begin
 end;
 $$;
 
+-- 募集者として応募に返信する(募集の管理キーが必要)
+create or replace function reply_to_application(
+  p_listing_id uuid,
+  p_manage_key text,
+  p_application_id uuid,
+  p_message text
+) returns json
+language plpgsql security definer set search_path = public, extensions
+as $$
+declare
+  v_listing public_listings%rowtype;
+  v_app public_applications%rowtype;
+begin
+  select * into v_listing from public_listings
+    where id = p_listing_id
+      and manage_key_hash = encode(extensions.digest(p_manage_key, 'sha256'), 'hex');
+  if not found then
+    raise exception 'listing not found or invalid manage key';
+  end if;
+  select * into v_app from public_applications
+    where id = p_application_id and listing_id = p_listing_id;
+  if not found then
+    raise exception 'application not found for this listing';
+  end if;
+  if (select count(*) from public_replies where application_id = p_application_id) >= 200 then
+    raise exception 'reply limit reached';
+  end if;
+  insert into public_replies (application_id, from_role, message)
+    values (p_application_id, 'owner', p_message);
+  return json_build_object('ok', true);
+end;
+$$;
+
+-- 応募者が自分の応募スレッド(募集者との往復)を取得する(応募キーが必要)
+create or replace function get_my_application_detail(
+  p_application_id uuid,
+  p_application_key text
+) returns json
+language plpgsql security definer set search_path = public, extensions
+as $$
+declare
+  v_app public_applications%rowtype;
+  v_listing public_listings%rowtype;
+  v_replies json;
+begin
+  select * into v_app from public_applications
+    where id = p_application_id
+      and manage_key_hash is not null
+      and manage_key_hash = encode(extensions.digest(p_application_key, 'sha256'), 'hex');
+  if not found then
+    raise exception 'application not found or invalid key';
+  end if;
+  select * into v_listing from public_listings where id = v_app.listing_id;
+  select coalesce(json_agg(json_build_object(
+      'from_role', r.from_role,
+      'message', r.message,
+      'created_at', r.created_at
+    ) order by r.created_at asc), '[]'::json)
+  into v_replies
+  from public_replies r
+  where r.application_id = p_application_id;
+  return json_build_object(
+    'id', v_app.id,
+    'listing_title', coalesce(v_listing.title, '(削除された募集)'),
+    'listing_status', coalesce(v_listing.status, 'closed'),
+    'message', v_app.message,
+    'created_at', v_app.created_at,
+    'replies', v_replies
+  );
+end;
+$$;
+
+-- 応募者として返信する(応募キーが必要)
+create or replace function reply_as_applicant(
+  p_application_id uuid,
+  p_application_key text,
+  p_message text
+) returns json
+language plpgsql security definer set search_path = public, extensions
+as $$
+declare
+  v_app public_applications%rowtype;
+begin
+  select * into v_app from public_applications
+    where id = p_application_id
+      and manage_key_hash is not null
+      and manage_key_hash = encode(extensions.digest(p_application_key, 'sha256'), 'hex');
+  if not found then
+    raise exception 'application not found or invalid key';
+  end if;
+  if (select count(*) from public_replies where application_id = p_application_id) >= 200 then
+    raise exception 'reply limit reached';
+  end if;
+  insert into public_replies (application_id, from_role, message)
+    values (p_application_id, 'applicant', p_message);
+  return json_build_object('ok', true);
+end;
+$$;
+
+-- 自分の公開募集の新着サマリをまとめて取得(起動時の自動チェック用・1リクエスト)
+-- p_items: [{"id": "...", "key": "..."}, ...]
+create or replace function get_my_listings_summary(
+  p_items json
+) returns json
+language plpgsql security definer set search_path = public, extensions
+as $$
+declare
+  v_item json;
+  v_out json[] := '{}';
+  v_listing public_listings%rowtype;
+  v_count int;
+  v_replies int;
+begin
+  if p_items is null or json_array_length(p_items) > 50 then
+    raise exception 'invalid items';
+  end if;
+  for v_item in select * from json_array_elements(p_items) loop
+    select * into v_listing from public_listings
+      where id = (v_item->>'id')::uuid
+        and manage_key_hash = encode(extensions.digest(v_item->>'key', 'sha256'), 'hex');
+    if found then
+      select count(*) into v_count from public_applications where listing_id = v_listing.id;
+      select count(*) into v_replies
+        from public_replies r
+        join public_applications a on a.id = r.application_id
+        where a.listing_id = v_listing.id and r.from_role = 'applicant';
+      v_out := v_out || json_build_object(
+        'id', v_listing.id, 'ok', true, 'status', v_listing.status,
+        'application_count', v_count, 'applicant_reply_count', v_replies);
+    else
+      v_out := v_out || json_build_object('id', v_item->>'id', 'ok', false);
+    end if;
+  end loop;
+  return coalesce(array_to_json(v_out), '[]'::json);
+end;
+$$;
+
+-- 自分の応募の新着サマリをまとめて取得(応募者側の自動チェック用・1リクエスト)
+create or replace function get_my_applications_summary(
+  p_items json
+) returns json
+language plpgsql security definer set search_path = public, extensions
+as $$
+declare
+  v_item json;
+  v_out json[] := '{}';
+  v_app public_applications%rowtype;
+  v_status text;
+  v_replies int;
+begin
+  if p_items is null or json_array_length(p_items) > 50 then
+    raise exception 'invalid items';
+  end if;
+  for v_item in select * from json_array_elements(p_items) loop
+    select * into v_app from public_applications
+      where id = (v_item->>'id')::uuid
+        and manage_key_hash is not null
+        and manage_key_hash = encode(extensions.digest(v_item->>'key', 'sha256'), 'hex');
+    if found then
+      select status into v_status from public_listings where id = v_app.listing_id;
+      select count(*) into v_replies
+        from public_replies where application_id = v_app.id and from_role = 'owner';
+      v_out := v_out || json_build_object(
+        'id', v_app.id, 'ok', true,
+        'listing_status', coalesce(v_status, 'closed'),
+        'owner_reply_count', v_replies);
+    else
+      v_out := v_out || json_build_object('id', v_item->>'id', 'ok', false);
+    end if;
+  end loop;
+  return coalesce(array_to_json(v_out), '[]'::json);
+end;
+$$;
+
 -- 不適切な募集を通報する
 create or replace function report_listing(
   p_listing_id uuid,
@@ -286,6 +494,11 @@ grant execute on function submit_application(uuid, text, text, text, boolean) to
 grant execute on function get_my_listing_detail(uuid, text) to anon;
 grant execute on function close_listing(uuid, text) to anon;
 grant execute on function report_listing(uuid, text) to anon;
+grant execute on function reply_to_application(uuid, text, uuid, text) to anon;
+grant execute on function get_my_application_detail(uuid, text) to anon;
+grant execute on function reply_as_applicant(uuid, text, text) to anon;
+grant execute on function get_my_listings_summary(json) to anon;
+grant execute on function get_my_applications_summary(json) to anon;
 
 -- =====================================================================
 -- 管理者の運用メモ (SupabaseのTable Editorで行う)

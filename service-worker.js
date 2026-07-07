@@ -1,4 +1,4 @@
-const CACHE_NAME = "hoop-match-v39";
+const CACHE_NAME = "hoop-match-v40";
 const ASSETS = [
   "./",
   "./index.html",

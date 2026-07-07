@@ -2542,6 +2542,7 @@ async function loadPublicListings({ silent = false } = {}) {
     publicListings = (Array.isArray(rows) ? rows : []).map(mapPublicRow);
     updateNewSinceBadge();
     markListingsSeen();
+    checkPublicInbox();
     setPublicStatus(`公開募集 ${publicListings.length}件 (${new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}時点)`);
     renderListings();
   } catch (error) {
@@ -2587,6 +2588,79 @@ async function reportPublicListing(listingId, reason) {
   return sbRpc("report_listing", { p_listing_id: listingId, p_reason: reason });
 }
 
+async function replyToApplicationAsOwner(entry, applicationId, message) {
+  return sbRpc("reply_to_application", {
+    p_listing_id: entry.id,
+    p_manage_key: entry.manageKey,
+    p_application_id: applicationId,
+    p_message: message,
+  });
+}
+
+async function fetchMyApplicationDetail(application) {
+  return sbRpc("get_my_application_detail", {
+    p_application_id: application.applicationId,
+    p_application_key: application.applicationKey,
+  });
+}
+
+async function replyAsApplicant(application, message) {
+  return sbRpc("reply_as_applicant", {
+    p_application_id: application.applicationId,
+    p_application_key: application.applicationKey,
+    p_message: message,
+  });
+}
+
+// ===== 新着の自動チェック(起動時・再読み込み時に2リクエストで完了) =====
+// 自分の公開募集への新着応募と、自分の応募への募集者の新着返信をまとめて確認し、
+// バッジで知らせる。「応募を確認」を押さなくても気づける。
+async function checkPublicInbox() {
+  if (!publicApiEnabled()) return;
+
+  const ownerItems = state.myPublicListings
+    .filter((entry) => entry.id && entry.manageKey)
+    .slice(0, 50)
+    .map((entry) => ({ id: entry.id, key: entry.manageKey }));
+  const applicantItems = state.applications
+    .filter((app) => app.sentToPublic && app.applicationId && app.applicationKey)
+    .slice(0, 50)
+    .map((app) => ({ id: app.applicationId, key: app.applicationKey }));
+
+  try {
+    if (ownerItems.length > 0) {
+      const rows = await sbRpc("get_my_listings_summary", { p_items: ownerItems });
+      (Array.isArray(rows) ? rows : []).forEach((row) => {
+        if (!row.ok) return;
+        const entry = state.myPublicListings.find((item) => item.id === row.id);
+        if (!entry) return;
+        entry.status = row.status;
+        entry.applicationCount = row.application_count;
+        entry.applicantReplyCount = row.applicant_reply_count;
+      });
+    }
+    if (applicantItems.length > 0) {
+      const rows = await sbRpc("get_my_applications_summary", { p_items: applicantItems });
+      (Array.isArray(rows) ? rows : []).forEach((row) => {
+        if (!row.ok) return;
+        const app = state.applications.find((item) => item.applicationId === row.id);
+        if (!app) return;
+        app.listingStatus = row.listing_status;
+        app.ownerReplyCount = row.owner_reply_count;
+      });
+    }
+    saveState();
+    renderMyPublicListings();
+    renderApplications();
+  } catch {
+    // 新着チェックは補助機能なので、失敗しても静かにスキップ(次回の読込で再試行)
+  }
+}
+
+function countUnseen(current, seen) {
+  return Math.max(0, (current || 0) - (seen || 0));
+}
+
 const PUBLIC_STATUS_LABELS = {
   pending: "承認待ち",
   approved: "公開中",
@@ -2606,11 +2680,22 @@ function renderMyPublicListings() {
 
     const title = document.createElement("strong");
     title.textContent = entry.title;
+    const newApps = countUnseen(entry.applicationCount, entry.seenApplicationCount);
+    const newReplies = countUnseen(entry.applicantReplyCount, entry.seenApplicantReplyCount);
+    if (newApps > 0 || newReplies > 0) {
+      const inbox = document.createElement("span");
+      inbox.className = "inbox-badge";
+      const parts = [];
+      if (newApps > 0) parts.push(`新着応募 +${newApps}`);
+      if (newReplies > 0) parts.push(`新着返信 +${newReplies}`);
+      inbox.textContent = parts.join(" / ");
+      title.append(" ", inbox);
+    }
     const meta = document.createElement("p");
     meta.className = "meta";
     meta.textContent = `投稿: ${new Date(entry.createdAt).toLocaleDateString("ja-JP")} / 状態: ${
       PUBLIC_STATUS_LABELS[entry.status] || entry.status || "承認待ち"
-    }`;
+    }${entry.applicationCount ? ` / 応募 ${entry.applicationCount}件` : ""}`;
 
     const detail = document.createElement("div");
     detail.className = "my-public-detail";
@@ -2646,15 +2731,77 @@ function renderMyPublicListings() {
             head.textContent = `${new Date(app.created_at).toLocaleString("ja-JP")} / ${
               app.applicant_name || "名前なし"
             }${app.adult_confirmed ? " / 成人代表者確認済み" : ""}`;
-            const body = document.createElement("p");
-            body.textContent = app.message;
             const contact = document.createElement("p");
             contact.className = "meta";
             contact.textContent = `連絡先: ${app.contact}`;
-            item.append(head, body, contact);
+
+            // 応募メッセージ+やり取りのスレッド表示
+            const threadBox = document.createElement("div");
+            threadBox.className = "application-messages";
+            const appendThreadMessage = (fromRole, text, createdAt) => {
+              const wrap = document.createElement("div");
+              wrap.className = `application-message ${fromRole === "owner" ? "owner" : "applicant"}`;
+              const role = document.createElement("span");
+              role.className = "role";
+              role.textContent = `${fromRole === "owner" ? "募集者(自分)" : "応募者"}${
+                createdAt ? ` ・ ${new Date(createdAt).toLocaleString("ja-JP")}` : ""
+              }`;
+              const body = document.createElement("p");
+              body.textContent = text;
+              wrap.append(role, body);
+              threadBox.append(wrap);
+            };
+            appendThreadMessage("applicant", app.message, app.created_at);
+            (Array.isArray(app.replies) ? app.replies : []).forEach((reply) => {
+              appendThreadMessage(reply.from_role, reply.message, reply.created_at);
+            });
+
+            // 募集者としての返信ボックス(サーバー経由で応募者に届く)
+            const replyBox = document.createElement("div");
+            replyBox.className = "reply-box";
+            const replyInput = document.createElement("textarea");
+            replyInput.rows = 2;
+            replyInput.placeholder = "応募者への返信(相手のアプリに届きます)";
+            const replyActions = document.createElement("div");
+            replyActions.className = "card-actions reply-actions";
+            const replyButton = document.createElement("button");
+            replyButton.type = "button";
+            replyButton.textContent = "返信を送る";
+            replyButton.addEventListener("click", async () => {
+              const text = replyInput.value.trim();
+              if (!text) {
+                replyInput.focus();
+                return;
+              }
+              replyButton.disabled = true;
+              try {
+                await replyToApplicationAsOwner(entry, app.id, text);
+                appendThreadMessage("owner", text, new Date().toISOString());
+                replyInput.value = "";
+              } catch (error) {
+                window.alert(`返信を送信できませんでした: ${error.message}`);
+              } finally {
+                replyButton.disabled = false;
+              }
+            });
+            replyActions.append(replyButton);
+            replyBox.append(replyInput, replyActions);
+
+            item.append(head, contact, threadBox, replyBox);
             detail.append(item);
           });
         }
+        // 開いた時点で既読扱いにする(バッジを消す)
+        entry.seenApplicationCount = apps.length;
+        entry.seenApplicantReplyCount = apps.reduce(
+          (sum, app) => sum + (Array.isArray(app.replies) ? app.replies.filter((r) => r.from_role === "applicant").length : 0),
+          0,
+        );
+        entry.applicationCount = apps.length;
+        entry.applicantReplyCount = entry.seenApplicantReplyCount;
+        saveState();
+        // 全体を再描画すると開いたスレッドが消えるため、バッジだけその場で消す
+        card.querySelector(".inbox-badge")?.remove();
       } catch (error) {
         detail.textContent = `取得できませんでした: ${error.message}`;
       } finally {
@@ -3382,11 +3529,111 @@ function renderApplications() {
     item.append(head, meta, thread);
 
     if (application.sentToPublic) {
-      const note = document.createElement("p");
-      note.className = "notes";
-      note.textContent =
-        "公開募集への応募はサーバーへ送信済みです。募集者からの返信は記入した連絡先に届きます。";
-      item.append(note);
+      if (application.applicationId && application.applicationKey) {
+        // 公開応募: サーバー上のやり取りスレッド(募集者の返信がここに届く)
+        const newReplies = countUnseen(application.ownerReplyCount, application.seenOwnerReplyCount);
+        if (newReplies > 0) {
+          const inbox = document.createElement("span");
+          inbox.className = "inbox-badge";
+          inbox.textContent = `新着返信 +${newReplies}`;
+          title.append(" ", inbox);
+        }
+
+        const serverThread = document.createElement("div");
+        serverThread.className = "application-messages";
+
+        const replyBox = document.createElement("div");
+        replyBox.className = "reply-box";
+        replyBox.hidden = true;
+        const replyInput = document.createElement("textarea");
+        replyInput.rows = 2;
+        replyInput.placeholder = "募集者への返信(相手のアプリに届きます・個人情報は書かない)";
+        const replyActions = document.createElement("div");
+        replyActions.className = "card-actions reply-actions";
+        const replyButton = document.createElement("button");
+        replyButton.type = "button";
+        replyButton.textContent = "返信を送る";
+        replyActions.append(replyButton);
+        replyBox.append(replyInput, replyActions);
+
+        const appendServerMessage = (fromRole, text, createdAt) => {
+          const wrap = document.createElement("div");
+          wrap.className = `application-message ${fromRole === "owner" ? "owner" : "applicant"}`;
+          const role = document.createElement("span");
+          role.className = "role";
+          role.textContent = `${fromRole === "owner" ? "募集者" : "応募者(自分)"}${
+            createdAt ? ` ・ ${new Date(createdAt).toLocaleString("ja-JP")}` : ""
+          }`;
+          const body = document.createElement("p");
+          body.textContent = text;
+          wrap.append(role, body);
+          serverThread.append(wrap);
+        };
+
+        const openButton = document.createElement("button");
+        openButton.type = "button";
+        openButton.className = "secondary";
+        openButton.textContent = newReplies > 0 ? `やり取りを確認(新着 +${newReplies})` : "やり取りを確認";
+        openButton.addEventListener("click", async () => {
+          openButton.disabled = true;
+          openButton.textContent = "確認中…";
+          try {
+            const result = await fetchMyApplicationDetail(application);
+            thread.hidden = true; // ローカルの控え表示はサーバーの最新スレッドに置き換える
+            serverThread.replaceChildren();
+            appendServerMessage("applicant", result.message, result.created_at);
+            const replies = Array.isArray(result.replies) ? result.replies : [];
+            replies.forEach((reply) => appendServerMessage(reply.from_role, reply.message, reply.created_at));
+            // 既読扱いにしてバッジを消す
+            application.ownerReplyCount = replies.filter((r) => r.from_role === "owner").length;
+            application.seenOwnerReplyCount = application.ownerReplyCount;
+            application.listingStatus = result.listing_status;
+            saveState();
+            item.querySelector(".inbox-badge")?.remove();
+            replyBox.hidden = result.listing_status === "rejected";
+            openButton.textContent = "最新のやり取りに更新";
+          } catch (error) {
+            serverThread.replaceChildren();
+            const errorNote = document.createElement("p");
+            errorNote.className = "notes";
+            errorNote.textContent = `やり取りを取得できませんでした: ${error.message}`;
+            serverThread.append(errorNote);
+            openButton.textContent = "やり取りを確認";
+          } finally {
+            openButton.disabled = false;
+          }
+        });
+
+        replyButton.addEventListener("click", async () => {
+          const text = replyInput.value.trim();
+          if (!text) {
+            replyInput.focus();
+            return;
+          }
+          replyButton.disabled = true;
+          try {
+            await replyAsApplicant(application, text);
+            appendServerMessage("applicant", text, new Date().toISOString());
+            replyInput.value = "";
+          } catch (error) {
+            window.alert(`返信を送信できませんでした: ${error.message}`);
+          } finally {
+            replyButton.disabled = false;
+          }
+        });
+
+        const openActions = document.createElement("div");
+        openActions.className = "card-actions";
+        openActions.append(openButton);
+        item.append(openActions, serverThread, replyBox);
+      } else {
+        // 旧形式(やり取り機能導入前)の応募: 従来どおり連絡先経由
+        const note = document.createElement("p");
+        note.className = "notes";
+        note.textContent =
+          "公開募集への応募はサーバーへ送信済みです。募集者からの返信は記入した連絡先に届きます。";
+        item.append(note);
+      }
     } else {
       // 返信フォーム(端末内のやり取り。募集者・応募者のどちらの立場でも返信できる)
       const replyBox = document.createElement("div");
@@ -4007,8 +4254,9 @@ async function handleApplicationSubmit(event) {
       return;
     }
     elements.privateNotice.textContent = "送信中…";
+    let publicResult = null;
     try {
-      await sbRpc("submit_application", {
+      publicResult = await sbRpc("submit_application", {
         p_listing_id: listing.id,
         p_message: data.message.trim(),
         p_contact: contact,
@@ -4031,6 +4279,10 @@ async function handleApplicationSubmit(event) {
       createdAt: new Date().toISOString(),
       private: true,
       sentToPublic: true,
+      applicationId: publicResult?.application_id || null,
+      applicationKey: publicResult?.application_key || null,
+      ownerReplyCount: 0,
+      seenOwnerReplyCount: 0,
     });
     saveState();
     elements.applicationForm.reset();
@@ -4038,7 +4290,7 @@ async function handleApplicationSubmit(event) {
     elements.publicApplyFields.hidden = true;
     activeApplicationTarget = null;
     elements.privateNotice.textContent =
-      "公開募集に応募を送信しました。募集者が確認すると、記入した連絡先へ連絡が来ます(控えを端末内に保存しました)。";
+      "公開募集に応募を送信しました。募集者からの返信はこの画面の「やり取りを確認」で読めます(記入した連絡先に直接連絡が来る場合もあります)。";
     renderApplications();
     return;
   }

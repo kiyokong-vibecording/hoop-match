@@ -50,6 +50,7 @@ TESTS=(
   "test-newbadge"
   "test-public-off"
   "test-public-on:pre-public"
+  "test-public-thread:pre-public"
   "test-error:pre-error"
 )
 
