@@ -1,10 +1,14 @@
 {
-  "name": "Hoop Match",
+  "name": "Hoop Match - バスケの試合相手・メンバー・体育館を探す",
   "short_name": "Hoop Match",
-  "description": "Local-first basketball opponent matching planner.",
+  "description": "バスケットボールの試合相手・メンバー・体育館を全国47都道府県で探せる無料マッチングアプリ",
+  "lang": "ja",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f7f5ef",
-  "theme_color": "#1f7a68",
-  "icons": []
+  "theme_color": "#103c78",
+  "icons": [
+    { "src": "./assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }

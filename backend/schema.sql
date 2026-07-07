@@ -22,7 +22,7 @@ create extension if not exists pgcrypto with schema extensions;
 create table if not exists public_listings (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz not null default now(),
-  type text not null check (type in ('opponent', 'member', 'personal', 'helper', 'practice')),
+  type text not null check (type in ('opponent', 'member', 'pickup', 'helper', 'practice')),
   category text not null,
   title text not null check (char_length(title) between 1 and 100),
   prefecture text not null,

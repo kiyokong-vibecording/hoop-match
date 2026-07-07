@@ -51,6 +51,7 @@ TESTS=(
   "test-public-off"
   "test-public-on:pre-public"
   "test-public-thread:pre-public"
+  "test-mobile-fixes:pre-public"
   "test-error:pre-error"
 )
 

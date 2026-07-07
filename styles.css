@@ -1392,3 +1392,48 @@ textarea {
   white-space: nowrap;
   vertical-align: middle;
 }
+
+/* ===== トップの新着メッセージバナー ===== */
+.inbox-banner {
+  display: block;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border: 2px solid #d9534f;
+  border-radius: 14px;
+  background: #fdecea;
+  color: #a12622;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+}
+
+.inbox-banner:hover {
+  background: #fbdcd9;
+}
+
+/* ===== 日付入力のはみ出し防止(iOS Safari) ===== */
+input[type="date"] {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 2.6rem;
+}
+
+form label input,
+form label select,
+form label textarea {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ===== ユーザー追加施設のバッジ ===== */
+.facility-tag.user-added {
+  background: #e7f0ff;
+  color: #103c78;
+  border: 1px solid #103c78;
+}

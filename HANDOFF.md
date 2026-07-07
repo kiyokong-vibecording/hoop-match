@@ -574,3 +574,50 @@ docs/backend-setup.mdにトラブルシュート(本件+末尾スラッシュの
 - テスト: tests/test-public-thread.js(19項目)、pre-public.jsに新RPCスタブ
   (close後のstatusは実状態連動)。全15スイート成功。v40
 - ユーザーの実Supabaseにはアップグレード用SQLを会話で案内(alter+新テーブル+関数差し替え)
+
+## 2026-07-05 スマホ実使用フィードバック対応(7件+発見バグ1件)
+
+1. トップのサマリーカウントに公開募集を含めた(renderCountsで[...listings, ...publicListings]、
+   公開読込後にrenderCounts()を呼ぶ)
+2. サマリーカード押下で該当セクションへscrollIntoView(募集一覧/施設検索)
+3. トップに新着メッセージバナー(#inboxBanner)。未読の応募/返信の合計を表示し、
+   タップで.private-panelへスクロール。checkPublicInboxと既読化の各所でupdateInboxBanner()
+4. input[type=date]のはみ出し修正(width:100%/box-sizing/appearance none/min-height 2.6rem。
+   全フォーム部品にmax-width:100%も適用)
+5. 終了/非承認の公開募集に「一覧から削除」ボタン(confirm付き。管理キー破棄の注意文言)
+6. 施設追加フォームの市区町村をセレクト化(都道府県連動でgetMunicipalityOptions、
+   「その他(直接入力)」で#facilityMunicipalityOtherが出現。datalistは廃止)
+   ユーザー追加施設にsource:"user"を付与するようになった
+7. 施設カードに「ユーザー追加」バッジ(.facility-tag.user-added、source!==catalog)
+
+発見バグ: スキーマのtype checkが'personal'でアプリの'pickup'と不一致
+→ 個人参加の公開投稿がエラーになるため'pickup'に修正(schema.sql)。
+既存Supabaseには制約の張り替えSQLが必要(会話で案内):
+  alter table public_listings drop constraint public_listings_type_check;
+  alter table public_listings add constraint public_listings_type_check
+    check (type in ('opponent','member','pickup','helper','practice'));
+
+テスト: tests/test-mobile-fixes.js(21項目、scrollIntoViewスパイ/日付幅の実測含む)。
+全16スイート成功。v41
+
+## 2026-07-05 セルフ監査(依頼: 指摘以外の修正点の洗い出し)
+
+### 発見・修正したバグ
+1. 【重大】「ユーザー追加」バッジの誤判定: 同梱データのsourceはcatalog/opas/labolaの
+   3種があり、source!=="catalog"判定だとopas(51件)/labola(34件)にも誤ってバッジが付いた。
+   非表示管理の「完全に削除」も同判定。isUserAddedFacility()(カタログIDのSet基準)を
+   新設して両所を修正。回帰防止テスト(大阪府=opas/labola地帯で全カード無バッジ)追加
+
+### 改善
+2. manifest.webmanifest: 英語のままだった名前/説明を日本語化、icons空→192/512pxを
+   hero画像から生成(assets/icon-192.png, icon-512.png)、theme_colorをmetaと統一(#103c78)、
+   apple-touch-iconも192pxアイコンへ。SWキャッシュにアイコン追加
+3. README.md: 初期プロトタイプの英語説明→現状の機能・構成・開発手順・運用メモに刷新
+
+### 監査してクリーンだった項目
+- XSS: innerHTML使用ゼロ(全てtextContent) / ローカル応募の保存に公開用フィールド混入なし
+- 募集種別の値: フォームoption・typeLabels・スキーマcheckが一致(pickup修正後)
+- OGPのog:url: 実際の公開URLと一致しており書き換え不要だった
+- 期限切れの公開募集: 初期フィルタ(本日以降のみ)で非表示、フィルタ解除時は
+  グレーアウト+受付終了が正しく適用(headlessで確認)
+- 全16スイート成功。v42

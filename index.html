@@ -31,9 +31,9 @@
     <meta name="theme-color" content="#103c78" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Hoop Match" />
-    <link rel="apple-touch-icon" href="./assets/hero-court.png" />
+    <link rel="apple-touch-icon" href="./assets/icon-192.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=40" />
+    <link rel="stylesheet" href="./styles.css?v=42" />
     <title>Hoop Match | バスケの試合相手・メンバー・体育館を全国で探せる無料アプリ</title>
     <script type="application/ld+json">
     {
@@ -121,6 +121,10 @@
 
     <main>
       <button id="homeButton" class="home-button" type="button" hidden>トップへ戻る</button>
+      <button id="inboxBanner" class="inbox-banner" type="button" hidden>
+        📬 新着メッセージが届いています<span id="inboxBannerDetail"></span> — タップして確認
+      </button>
+
       <section class="summary-grid" aria-label="概要">
         <button class="summary-card" type="button" data-summary-action="opponent">
           <span id="countMatch">0</span>
@@ -635,14 +639,17 @@
           </label>
           <label>
             市区町村
+            <select id="facilityMunicipality" name="municipality" required>
+              <option value="">都道府県を選択してください</option>
+            </select>
+          </label>
+          <label id="facilityMunicipalityOtherLabel" hidden>
+            市区町村(直接入力)
             <input
-              id="facilityMunicipality"
-              name="municipality"
-              list="facilityMunicipalityList"
-              required
+              id="facilityMunicipalityOther"
+              name="municipalityOther"
               placeholder="例: 世田谷区"
             />
-            <datalist id="facilityMunicipalityList"></datalist>
           </label>
           <label>
             予約方法
@@ -742,8 +749,8 @@
       </article>
     </template>
 
-    <script src="./data/config.js?v=40"></script>
-    <script src="./data/facilities.js?v=40"></script>
-    <script src="./app.js?v=40"></script>
+    <script src="./data/config.js?v=42"></script>
+    <script src="./data/facilities.js?v=42"></script>
+    <script src="./app.js?v=42"></script>
   </body>
 </html>
