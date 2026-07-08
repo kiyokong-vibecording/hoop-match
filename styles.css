@@ -1,18 +1,25 @@
 :root {
   color-scheme: light;
-  --bg: #eef8ff;
+  --bg: #f4f6f9;
   --surface: #ffffff;
-  --ink: #171717;
-  --muted: #57616c;
-  --line: #d5e3e8;
-  --accent: #ff7a1a;
+  --ink: #16202b;
+  --muted: #5a6675;
+  --line: #dfe5ec;
+  /* 行動色: ボールオレンジ(主ボタン・強調) */
+  --accent: #f2691d;
   --accent-strong: #c94e00;
+  /* ブランド色: コートネイビー(見出し・リンク・情報バッジ) */
+  --navy: #103c78;
+  --navy-deep: #0b2b57;
+  --navy-soft: #eef3fb;
+  /* 成立・確保の意味だけに使う緑 */
   --mint: #13a889;
-  --mint-dark: #087867;
+  --mint-dark: #0b7a5c;
   --warn: #b4442e;
   --gold: #f6b83f;
-  --blue: #2468d8;
-  --sky: #c9f2ff;
+  /* 旧--blueの参照先をネイビーに統一(リンク・secondary系が一括で揃う) */
+  --blue: var(--navy);
+  --sky: #dbe7f5;
 }
 
 * {
@@ -31,7 +38,7 @@ html {
 body {
   margin: 0;
   background:
-    linear-gradient(135deg, rgba(201, 242, 255, 0.75), rgba(255, 246, 222, 0.65)),
+    linear-gradient(180deg, #eef2f7 0%, var(--bg) 320px),
     var(--bg);
   color: var(--ink);
   font-family:
@@ -52,9 +59,16 @@ button,
   background: var(--accent);
   color: #fff;
   padding: 0.7rem 0.9rem;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 750;
+  box-shadow: 0 1px 2px rgba(16, 32, 43, 0.12);
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.06s ease;
+}
+
+button:active,
+.import-label:active {
+  transform: translateY(1px);
 }
 
 button:hover,
@@ -75,15 +89,16 @@ button:hover,
 }
 
 .secondary {
-  border-color: var(--blue);
-  background: #eaf2ff;
-  color: var(--blue);
+  border-color: var(--navy);
+  background: var(--navy-soft);
+  color: var(--navy);
+  box-shadow: none;
 }
 
 .secondary:hover {
-  border-color: #174aa3;
-  background: #d8e8ff;
-  color: #174aa3;
+  border-color: var(--navy-deep);
+  background: #e2ebf8;
+  color: var(--navy-deep);
 }
 
 button:disabled {
@@ -162,16 +177,32 @@ h1 {
 }
 
 h2 {
-  margin-bottom: 1rem;
+  position: relative;
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.5rem;
   font-size: 1.2rem;
+  letter-spacing: 0.01em;
+  color: var(--navy-deep);
+}
+
+/* コートのペイントラインを思わせる短いアンダーライン(このアプリの署名的装飾) */
+h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2.4rem;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent);
 }
 
 .eyebrow {
   margin-bottom: 0.35rem;
-  color: var(--mint-dark);
-  font-size: 0.78rem;
+  color: #6b7a8f;
+  font-size: 0.74rem;
   font-weight: 800;
-  letter-spacing: 0;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
@@ -480,23 +511,25 @@ body.view-listings .facility-finder {
   gap: 0.55rem;
   margin-top: 1rem;
   overflow-x: auto;
-  border: 2px solid #111;
-  border-radius: 8px;
-  background: #fff;
-  padding: 0.55rem;
-  box-shadow: 0 12px 24px rgba(38, 86, 107, 0.1);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  padding: 0.5rem;
+  box-shadow: 0 8px 20px rgba(16, 43, 87, 0.08);
 }
 
 .tab-button {
   flex: 0 0 auto;
-  border-color: #dde7eb;
+  border-color: var(--line);
   background: #fff;
-  color: #222;
+  color: #33415c;
+  box-shadow: none;
 }
 
 .tab-button.active {
-  border-color: #111;
-  background: #111;
+  border-color: var(--navy);
+  background: var(--navy);
   color: #fff;
 }
 
@@ -638,9 +671,10 @@ textarea {
 
 .fresh-badge {
   border-radius: 999px;
-  background: var(--gold);
-  color: #111;
-  padding: 0.25rem 0.55rem;
+  background: #ffe4cd;
+  color: #a24400;
+  border: 1px solid #f5b98a;
+  padding: 0.22rem 0.55rem;
   font-size: 0.72rem;
   font-weight: 900;
 }
@@ -904,20 +938,27 @@ textarea {
   align-items: center;
   justify-content: center;
   min-height: 2.75rem;
-  border: 1px solid var(--blue);
-  border-radius: 8px;
-  background: #eaf2ff;
-  color: var(--blue) !important;
+  border: 1px solid var(--navy);
+  border-radius: 10px;
+  background: var(--navy-soft);
+  color: var(--navy) !important;
   padding: 0.7rem 0.9rem;
-  font-weight: 700;
+  font-weight: 750;
   text-decoration: none;
   text-align: center;
+  transition: background-color 0.15s ease;
 }
 
+.button-link:hover {
+  background: #e2ebf8;
+  color: var(--navy-deep) !important;
+}
+
+/* 地図リンクも同じ体系(色の氾濫を防ぎ「枠付き=リンク」で統一) */
 .map-link {
-  border-color: var(--mint-dark);
-  background: #e7faf4;
-  color: var(--mint-dark) !important;
+  border-color: var(--navy);
+  background: var(--navy-soft);
+  color: var(--navy) !important;
 }
 
 .facility-item .card-actions {
@@ -1372,9 +1413,9 @@ textarea {
   display: inline-block;
   padding: 3px 12px;
   border-radius: 999px;
-  background: #e7faf4;
-  color: var(--mint-dark, #0b7a5c);
-  border: 1px solid var(--mint-dark, #0b7a5c);
+  background: var(--navy-soft);
+  color: var(--navy);
+  border: 1px solid var(--navy);
   font-size: 0.8rem;
   font-weight: 800;
   white-space: nowrap;
@@ -1436,4 +1477,31 @@ form label textarea {
   background: #e7f0ff;
   color: #103c78;
   border: 1px solid #103c78;
+}
+
+/* ===== デザイン品質の床: フォーカス可視・モーション配慮 ===== */
+:focus-visible {
+  outline: 3px solid rgba(16, 60, 120, 0.45);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* パネルの分離を高める(背景が静かになった分、面で階層を作る) */
+.filters,
+.board,
+.panel,
+.facility-finder {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(16, 32, 43, 0.05);
 }
