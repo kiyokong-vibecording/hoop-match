@@ -2,7 +2,7 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
       content="バスケの試合相手・メンバー・体育館を全国47都道府県でまとめて探せる無料アプリ。登録不要ですぐ使えます。"
@@ -29,11 +29,13 @@
     />
     <meta name="twitter:image" content="https://kiyokong-vibecording.github.io/hoop-match/assets/ogp.jpg" />
     <meta name="theme-color" content="#103c78" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Hoop Match" />
-    <link rel="apple-touch-icon" href="./assets/icon-192.png" />
+    <link rel="icon" href="./assets/icon-192.png" />
+    <link rel="apple-touch-icon" href="./assets/icon-180.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=44" />
+    <link rel="stylesheet" href="./styles.css?v=52" />
     <title>Hoop Match | バスケの試合相手・メンバー・体育館を全国で探せる無料アプリ</title>
     <script type="application/ld+json">
     {
@@ -48,284 +50,272 @@
     }
     </script>
   </head>
-  <body>
-    <header class="app-header">
-      <img class="hero-background" src="./assets/hero-court.png" alt="" />
-      <div class="hero-copy">
-        <p class="eyebrow">Find a court, find a game</p>
-        <h1>Hoop Match</h1>
-        <p class="header-copy">
-          試合相手、メンバー、バスケができるコート・体育館をまとめて探せるローカルファーストアプリ。
-        </p>
-      </div>
-      <div class="hero-phone" aria-label="主要メニュー">
-        <div class="phone-bar">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <h2>Hoop Match</h2>
-        <div class="hero-action-stack">
-          <button class="hero-action court" type="button" data-hero-action="court">
-            <span class="action-icon" aria-hidden="true">
-              <svg class="court-mark" viewBox="0 0 48 48" focusable="false">
-                <rect x="7" y="6" width="34" height="36" rx="3"></rect>
-                <path d="M7 24h34M24 6v36"></path>
-                <circle cx="24" cy="24" r="5.2"></circle>
-                <path d="M15 6v7.5c0 5 4 9 9 9s9-4 9-9V6"></path>
-                <path d="M15 42v-7.5c0-5 4-9 9-9s9 4 9 9V42"></path>
-                <path d="M20 10h8M20 38h8"></path>
-              </svg>
-            </span>
-            <span>
-              <strong>コートを探す</strong>
-              <small>近くのコート・体育館を見つけよう</small>
-            </span>
-          </button>
-          <button class="hero-action opponent" type="button" data-hero-action="opponent">
-            <span class="action-icon" aria-hidden="true">
-              <svg class="people-mark two" viewBox="0 0 48 48" focusable="false">
-                <circle cx="18" cy="15" r="7.2"></circle>
-                <circle cx="31" cy="17" r="6.2"></circle>
-                <path d="M5 39c1.6-8.5 6.4-13.5 13-13.5s11.4 5 13 13.5z"></path>
-                <path d="M23 39c1.2-6.8 5.1-10.8 10.4-10.8S42.6 32.2 44 39z"></path>
-              </svg>
-            </span>
-            <span>
-              <strong>相手を探す</strong>
-              <small>一緒にプレイする相手を探そう</small>
-            </span>
-          </button>
-          <button class="hero-action member" type="button" data-hero-action="member">
-            <span class="action-icon" aria-hidden="true">
-              <svg class="people-mark three" viewBox="0 0 48 48" focusable="false">
-                <circle cx="24" cy="14" r="7"></circle>
-                <circle cx="12" cy="19" r="5.5"></circle>
-                <circle cx="36" cy="19" r="5.5"></circle>
-                <path d="M10 40c1.4-8 6.4-12.8 14-12.8S36.6 32 38 40z"></path>
-                <path d="M3.8 39c1-6.4 4.8-10.1 9.6-10.1 2.5 0 4.5.8 6.1 2.3-2.8 2-4.7 4.8-5.7 7.8z"></path>
-                <path d="M44.2 39c-1-6.4-4.8-10.1-9.6-10.1-2.5 0-4.5.8-6.1 2.3 2.8 2 4.7 4.8 5.7 7.8z"></path>
-              </svg>
-            </span>
-            <span>
-              <strong>メンバーを集める</strong>
-              <small>チームメンバーを募集しよう</small>
-            </span>
-          </button>
-        </div>
-        <div class="phone-court" aria-hidden="true">
-          <span>Hoop!</span>
-        </div>
+  <body data-view="search">
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-ball" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.5" fill="#f2691d" />
+        <path d="M12 2.5v19M2.5 12h19M5.4 5.2c3.1 2.5 3.1 11.1 0 13.6M18.6 5.2c-3.1 2.5-3.1 11.1 0 13.6" fill="none" stroke="#0b2b57" stroke-width="1.4" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></g></symbol>
+      <symbol id="i-court" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M4 12h16" /><circle cx="12" cy="12" r="2.6" /><path d="M8 3v3a4 4 0 0 0 8 0V3M8 21v-3a4 4 0 0 1 8 0v3" /></g></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" /></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z" /><path d="M8 9.5h8M8 12.5h5" /></g></symbol>
+      <symbol id="i-team" viewBox="0 0 24 24"><path d="M7 4 4 6.5 5.5 10 7 9v11h10V9l1.5 1L20 6.5 17 4h-2.5a2.5 2.5 0 0 1-5 0z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" /></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.4" /></g></symbol>
+      <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+      <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5M5 12v8h14v-8" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+      <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></symbol>
+    </svg>
+
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="logo" href="#search" aria-label="Hoop Match さがす画面へ">
+          <svg class="logo-mark" aria-hidden="true"><use href="#i-ball" /></svg>
+          <span>Hoop Match</span>
+        </a>
+        <button id="areaButton" class="area-button" type="button" aria-label="地域を変更">
+          <svg aria-hidden="true"><use href="#i-pin" /></svg>
+          <span id="areaLabel">全国</span>
+          <svg aria-hidden="true"><use href="#i-down" /></svg>
+        </button>
       </div>
     </header>
 
-    <main>
-      <button id="homeButton" class="home-button" type="button" hidden>トップへ戻る</button>
+    <nav class="tabbar" aria-label="メインメニュー">
+      <a class="tab" href="#search" data-view-link="search">
+        <svg aria-hidden="true"><use href="#i-search" /></svg><span>さがす</span>
+      </a>
+      <a class="tab" href="#courts" data-view-link="courts">
+        <svg aria-hidden="true"><use href="#i-court" /></svg><span>コート</span>
+      </a>
+      <a class="tab tab-post" href="#post" data-view-link="post">
+        <span class="tab-post-button"><svg aria-hidden="true"><use href="#i-plus" /></svg></span><span>募集する</span>
+      </a>
+      <a class="tab" href="#inbox" data-view-link="inbox">
+        <svg aria-hidden="true"><use href="#i-chat" /></svg><span>やりとり</span>
+        <span id="inboxTabBadge" class="tab-badge" hidden></span>
+      </a>
+      <a class="tab" href="#team" data-view-link="team">
+        <svg aria-hidden="true"><use href="#i-team" /></svg><span>マイチーム</span>
+      </a>
+    </nav>
+
+    <main id="main">
       <button id="inboxBanner" class="inbox-banner" type="button" hidden>
-        📬 新着メッセージが届いています<span id="inboxBannerDetail"></span> — タップして確認
+        新着メッセージが届いています<span id="inboxBannerDetail"></span>
+        <span class="inbox-banner-go">見る</span>
       </button>
 
-      <section class="summary-grid" aria-label="概要">
-        <button class="summary-card" type="button" data-summary-action="opponent">
-          <span id="countMatch">0</span>
-          <p>試合相手募集</p>
-        </button>
-        <button class="summary-card" type="button" data-summary-action="member">
-          <span id="countMember">0</span>
-          <p>メンバー募集</p>
-        </button>
-        <button class="summary-card" type="button" data-summary-action="pickup-helper">
-          <span id="countPickup">0</span>
-          <p>個人参加・助っ人</p>
-        </button>
-        <button class="summary-card" type="button" data-summary-action="facilities">
-          <span id="countFacilities">0</span>
-          <p>バスケ施設</p>
-        </button>
-      </section>
-
-      <nav class="discover-tabs" aria-label="募集カテゴリ">
-        <button class="tab-button active" type="button" data-listing-tab="all">すべて</button>
-        <button class="tab-button" type="button" data-listing-tab="opponent">対戦相手</button>
-        <button class="tab-button" type="button" data-listing-tab="member">メンバー</button>
-        <button class="tab-button" type="button" data-listing-tab="pickup">個人参加</button>
-        <button class="tab-button" type="button" data-listing-tab="helper">助っ人</button>
-        <button class="tab-button" type="button" data-listing-tab="facility">施設</button>
-      </nav>
-
-      <section class="workspace">
-        <aside class="filters" aria-label="検索フィルター">
-          <div class="section-heading compact">
-            <h2>募集検索</h2>
-            <span id="activeResultCount" class="result-count">0件</span>
-          </div>
-          <label>
-            キーワード
-            <input id="filterKeyword" type="search" placeholder="タイトル、地域、体育館、メモ" />
-          </label>
-          <label>
-            募集種別
-            <select id="filterType">
-              <option value="all">すべて</option>
-              <option value="opponent">試合相手</option>
-              <option value="member">メンバー</option>
-              <option value="helper">助っ人</option>
-              <option value="pickup">個人参加</option>
-              <option value="practice">合同練習</option>
-            </select>
-          </label>
-          <label>
-            カテゴリ
-            <select id="filterCategory">
-              <option value="all">すべて</option>
-              <option>U12男子</option>
-              <option>U12女子</option>
-              <option>U15男子</option>
-              <option>U15女子</option>
-              <option>U18男子</option>
-              <option>U18女子</option>
-              <option>大学同好会</option>
-              <option>社会人同好会</option>
-              <option>草バスケ</option>
-              <option>MIX</option>
-              <option>女子</option>
-            </select>
-          </label>
-          <label>
-            レベル
-            <select id="filterLevel">
-              <option value="all">すべて</option>
-              <option>初心者</option>
-              <option>エンジョイ</option>
-              <option>中級</option>
-              <option>経験者中心</option>
-              <option>競技志向アマチュア</option>
-            </select>
-          </label>
-          <label>
-            都道府県
-            <select id="filterPrefecture">
-              <option value="all">すべて</option>
-            </select>
-          </label>
-          <label>
-            市区町村
-            <select id="filterMunicipality" disabled>
-              <option value="all">すべて</option>
-            </select>
-          </label>
-          <label class="checkbox">
-            <input id="filterCourt" type="checkbox" />
-            体育館確保済みのみ
-          </label>
-          <label class="checkbox">
-            <input id="filterActive" type="checkbox" checked />
-            募集中のみ
-          </label>
-          <label>
-            開催日
-            <select id="filterDateRange">
-              <option value="all">すべて</option>
-              <option value="1">1日以内</option>
-              <option value="7">7日以内</option>
-              <option value="30">30日以内</option>
-            </select>
-          </label>
-          <label>
-            曜日
-            <select id="filterWeekday">
-              <option value="all">すべて</option>
-              <option value="0">日曜</option>
-              <option value="1">月曜</option>
-              <option value="2">火曜</option>
-              <option value="3">水曜</option>
-              <option value="4">木曜</option>
-              <option value="5">金曜</option>
-              <option value="6">土曜</option>
-            </select>
-          </label>
-          <label>
-            並び順
-            <select id="filterSort">
-              <option value="dateAsc">開催日が近い順</option>
-              <option value="new">新着順</option>
-              <option value="dateDesc">開催日が遠い順</option>
-            </select>
-          </label>
-          <button id="applyListingFilters" type="button">検索する</button>
-        </aside>
-
-        <section class="board" aria-label="募集一覧">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Listings</p>
-              <h2>募集一覧</h2>
-            </div>
-            <span id="newSinceLastVisit" class="new-since-badge" hidden></span>
-            <div id="publicToolbar" class="public-toolbar" hidden>
-              <button id="reloadPublic" type="button" class="secondary">公開募集を読み込む</button>
-              <span id="publicStatus" class="status-text"></span>
-            </div>
-          </div>
-          <div id="listingGrid" class="listing-grid"></div>
-        </section>
-      </section>
-
-      <section class="facility-finder" aria-label="バスケ施設検索">
-        <div class="section-heading">
-          <div>
-              <p class="eyebrow">Court Finder</p>
-            <h2>体育館・コート検索</h2>
-          </div>
-          <p class="section-note">条件を入力すると、登録済み施設の一覧を表示します。</p>
-        </div>
-        <div class="facility-search-grid">
-          <label>
-            都道府県
-            <select id="facilitySearchPrefecture">
-              <option value="all">すべて</option>
-            </select>
-          </label>
-          <label>
-            市区町村
-            <select id="facilitySearchMunicipality" disabled>
-              <option value="all">すべて</option>
-            </select>
-          </label>
-          <label>
-            予約方法
-            <select id="facilitySearchReservation">
-              <option value="all">すべて</option>
-              <option>自治体予約システム</option>
-              <option>民間予約サイト</option>
-              <option>公式サイト確認</option>
-              <option>Web予約</option>
-              <option>会員予約</option>
-              <option>電話予約</option>
-              <option>窓口予約</option>
-              <option>抽選制</option>
-              <option>チーム代表者確認が必要</option>
-            </select>
-          </label>
-          <label>
-            施設タイプ
-            <select id="facilitySearchType">
-              <option value="all">すべて</option>
-              <option>体育館</option>
-              <option>民間コート</option>
-              <option>商業施設</option>
-              <option>屋外コート</option>
-              <option>多目的施設</option>
-              <option>学校開放</option>
-            </select>
-          </label>
-          <label>
-            キーワード
-            <input id="facilitySearchKeyword" type="search" placeholder="施設名、民間コート、設備、メモ" />
+      <!-- ===== さがす ===== -->
+      <section class="view view-search" data-view="search" aria-labelledby="searchTitle">
+        <div class="search-band">
+          <h1 id="searchTitle" class="search-title">
+            <span class="eyebrow">Find a game</span>
+            バスケの試合相手・メンバーをさがす
+          </h1>
+          <label class="searchbox">
+            <svg aria-hidden="true"><use href="#i-search" /></svg>
+            <span class="visually-hidden">キーワード</span>
+            <input id="filterKeyword" type="search" placeholder="チーム名・体育館・キーワードで検索" enterkeyhint="search" />
           </label>
         </div>
+
+        <nav class="chip-row cats" aria-label="募集の種類">
+          <button class="chip active" type="button" data-listing-tab="all" aria-pressed="true">すべて</button>
+          <button class="chip" type="button" data-listing-tab="opponent" aria-pressed="false">試合相手<span class="chip-count" data-count-type="opponent"></span></button>
+          <button class="chip" type="button" data-listing-tab="member" aria-pressed="false">メンバー<span class="chip-count" data-count-type="member"></span></button>
+          <button class="chip" type="button" data-listing-tab="pickup" aria-pressed="false">個人参加<span class="chip-count" data-count-type="pickup"></span></button>
+          <button class="chip" type="button" data-listing-tab="helper" aria-pressed="false">助っ人<span class="chip-count" data-count-type="helper"></span></button>
+          <button class="chip" type="button" data-listing-tab="practice" aria-pressed="false">合同練習<span class="chip-count" data-count-type="practice"></span></button>
+          <button class="chip" type="button" data-listing-tab="school" aria-pressed="false">スクール生募集<span class="chip-count" data-count-type="school"></span></button>
+          <button class="chip" type="button" data-listing-tab="trial" aria-pressed="false">体験・見学<span class="chip-count" data-count-type="trial"></span></button>
+        </nav>
+
+        <div class="chip-row quick" role="group" aria-label="よく使う条件">
+          <button class="quick-chip" type="button" data-quick="weekend" aria-pressed="false">今週末</button>
+          <button class="quick-chip" type="button" data-quick="week" aria-pressed="false">7日以内</button>
+          <button class="quick-chip" type="button" data-quick="court" aria-pressed="false">体育館確保済み</button>
+          <button class="quick-chip" type="button" data-quick="youth" aria-pressed="false">U12〜U18</button>
+        </div>
+
+        <details id="filterPanel" class="filter-panel">
+          <summary>
+            <svg aria-hidden="true"><use href="#i-filter" /></svg>
+            詳しい条件・地域
+          </summary>
+          <div class="filter-grid">
+            <label>
+              都道府県
+              <select id="filterPrefecture">
+                <option value="all">すべて</option>
+              </select>
+            </label>
+            <label>
+              市区町村
+              <select id="filterMunicipality" disabled>
+                <option value="all">すべて</option>
+              </select>
+            </label>
+            <label>
+              募集の種類
+              <select id="filterType">
+                <option value="all">すべて</option>
+                <option value="opponent">試合相手</option>
+                <option value="member">メンバー</option>
+                <option value="helper">助っ人</option>
+                <option value="pickup">個人参加</option>
+                <option value="pickup-helper">個人参加・助っ人</option>
+                <option value="practice">合同練習</option>
+                <option value="school">スクール生募集</option>
+                <option value="trial">体験・見学</option>
+              </select>
+            </label>
+            <label>
+              開催日
+              <select id="filterDateRange">
+                <option value="all">すべて</option>
+                <option value="weekend">今週末</option>
+                <option value="1">1日以内</option>
+                <option value="7">7日以内</option>
+                <option value="30">30日以内</option>
+              </select>
+            </label>
+            <label>
+              カテゴリ
+              <select id="filterCategory">
+                <option value="all">すべて</option>
+                <option value="youth">U12〜U18すべて</option>
+                <option>U12男子</option>
+                <option>U12女子</option>
+                <option>U15男子</option>
+                <option>U15女子</option>
+                <option>U18男子</option>
+                <option>U18女子</option>
+                <option>大学同好会</option>
+                <option>社会人同好会</option>
+                <option>草バスケ</option>
+                <option>MIX</option>
+                <option>女子</option>
+              </select>
+            </label>
+            <label>
+              レベル
+              <select id="filterLevel">
+                <option value="all">すべて</option>
+                <option>初心者</option>
+                <option>エンジョイ</option>
+                <option>中級</option>
+                <option>経験者中心</option>
+                <option>競技志向アマチュア</option>
+              </select>
+            </label>
+            <label>
+              曜日
+              <select id="filterWeekday">
+                <option value="all">すべて</option>
+                <option value="0">日曜</option>
+                <option value="1">月曜</option>
+                <option value="2">火曜</option>
+                <option value="3">水曜</option>
+                <option value="4">木曜</option>
+                <option value="5">金曜</option>
+                <option value="6">土曜</option>
+              </select>
+            </label>
+            <label>
+              並び順
+              <select id="filterSort">
+                <option value="dateAsc">開催日が近い順</option>
+                <option value="new">新着順</option>
+                <option value="dateDesc">開催日が遠い順</option>
+              </select>
+            </label>
+            <label class="checkbox">
+              <input id="filterCourt" type="checkbox" />
+              体育館確保済みのみ
+            </label>
+            <label class="checkbox">
+              <input id="filterActive" type="checkbox" checked />
+              募集中のみ(終わった募集を隠す)
+            </label>
+          </div>
+          <div class="filter-actions">
+            <button id="applyListingFilters" type="button">この条件で表示</button>
+            <button id="resetListingFilters" type="button" class="ghost">条件をリセット</button>
+          </div>
+        </details>
+
+        <div class="result-bar">
+          <p class="result-count"><b id="activeResultCount">0件</b> の募集</p>
+          <span id="newSinceLastVisit" class="new-since-badge" hidden></span>
+          <div id="publicToolbar" class="public-toolbar" hidden>
+            <button id="reloadPublic" type="button" class="ghost small">最新に更新</button>
+            <span id="publicStatus" class="status-text"></span>
+          </div>
+        </div>
+
+        <div id="listingGrid" class="listing-grid" aria-live="polite"></div>
+      </section>
+
+      <!-- ===== コート ===== -->
+      <section class="view view-courts" data-view="courts" aria-labelledby="courtsTitle" hidden>
+        <header class="view-head">
+          <p class="eyebrow">Court Finder</p>
+          <h1 id="courtsTitle">体育館・コートをさがす</h1>
+          <p class="view-lead">全国の体育館・コート <b id="facilityTotal">0</b> 件から、予約ページや地図へすぐ移動できます。</p>
+        </header>
+
+        <div class="panel facility-finder" aria-label="バスケ施設検索">
+          <div class="facility-search-grid">
+            <label>
+              都道府県
+              <select id="facilitySearchPrefecture">
+                <option value="all">すべて</option>
+              </select>
+            </label>
+            <label>
+              市区町村
+              <select id="facilitySearchMunicipality" disabled>
+                <option value="all">すべて</option>
+              </select>
+            </label>
+            <label>
+              施設タイプ
+              <select id="facilitySearchType">
+                <option value="all">すべて</option>
+                <option>体育館</option>
+                <option>民間コート</option>
+                <option>商業施設</option>
+                <option>屋外コート</option>
+                <option>多目的施設</option>
+                <option>学校開放</option>
+              </select>
+            </label>
+            <label>
+              予約方法
+              <select id="facilitySearchReservation">
+                <option value="all">すべて</option>
+                <option>自治体予約システム</option>
+                <option>民間予約サイト</option>
+                <option>公式サイト確認</option>
+                <option>Web予約</option>
+                <option>会員予約</option>
+                <option>電話予約</option>
+                <option>窓口予約</option>
+                <option>抽選制</option>
+                <option>チーム代表者確認が必要</option>
+              </select>
+            </label>
+            <label class="span-2">
+              キーワード
+              <input id="facilitySearchKeyword" type="search" placeholder="施設名、設備、メモなど" />
+            </label>
+          </div>
+        </div>
+
         <div id="facilityList" class="facility-results"></div>
-        <details id="hiddenFacilityManager" hidden>
+
+        <details id="hiddenFacilityManager" class="panel fold" hidden>
           <summary>非表示にした施設 (<span id="hiddenFacilityCount">0</span>件)</summary>
           <p class="notes">
             「非表示」にした施設はここからいつでも元に戻せます。データは消えていません。
@@ -335,422 +325,498 @@
           </div>
           <div id="hiddenFacilityList" class="private-list"></div>
         </details>
+
+        <details class="panel fold add-facility-panel">
+          <summary>載っていない施設を追加する</summary>
+          <p class="notes">見つけた体育館・コートを、この端末に登録できます。</p>
+          <form id="facilityForm" class="stack-form">
+            <label>
+              施設名
+              <input name="name" required placeholder="例: 体育館名、民間レンタルコート名" />
+            </label>
+            <label>
+              施設タイプ
+              <select name="facilityType" required>
+                <option>体育館</option>
+                <option>民間コート</option>
+                <option>商業施設</option>
+                <option>屋外コート</option>
+                <option>多目的施設</option>
+                <option>学校開放</option>
+              </select>
+            </label>
+            <div class="two-col">
+              <label>
+                都道府県
+                <select id="facilityPrefecture" name="prefecture" required></select>
+              </label>
+              <label>
+                市区町村
+                <select id="facilityMunicipality" name="municipality" required>
+                  <option value="">都道府県を選択してください</option>
+                </select>
+              </label>
+            </div>
+            <label id="facilityMunicipalityOtherLabel" hidden>
+              市区町村(直接入力)
+              <input id="facilityMunicipalityOther" name="municipalityOther" placeholder="例: 世田谷区" />
+            </label>
+            <label>
+              予約方法
+              <select name="reservationMethod" required>
+                <option>自治体予約システム</option>
+                <option>民間予約サイト</option>
+                <option>公式サイト確認</option>
+                <option>Web予約</option>
+                <option>会員予約</option>
+                <option>電話予約</option>
+                <option>窓口予約</option>
+                <option>抽選制</option>
+                <option>チーム代表者確認が必要</option>
+              </select>
+            </label>
+            <label>
+              公式・予約サイトURL
+              <input name="url" type="url" placeholder="https://..." />
+            </label>
+            <label>
+              情報確認日
+              <input name="lastChecked" type="date" />
+            </label>
+            <label>
+              メモ
+              <textarea name="notes" rows="4" placeholder="コート数、リング、駐車場、更衣室、空調、床の状態など"></textarea>
+            </label>
+            <button type="submit">施設を保存</button>
+          </form>
+        </details>
       </section>
 
-      <section class="form-grid">
-        <form id="teamForm" class="panel">
-          <h2>チーム登録</h2>
-          <div id="teamProfile" class="team-profile" hidden>
-            <div>
-              <p class="eyebrow">Team Profile</p>
-              <h3 id="teamProfileName"></h3>
-              <p id="teamProfileMeta"></p>
-            </div>
-            <div class="team-profile-actions">
-              <span class="verified-badge">代表者確認済み</span>
-              <button id="editTeam" type="button" class="secondary">編集</button>
-            </div>
+      <!-- ===== 募集する ===== -->
+      <section class="view view-post" data-view="post" aria-labelledby="postTitle" hidden>
+        <header class="view-head">
+          <p class="eyebrow">New Listing</p>
+          <h1 id="postTitle">募集を作る</h1>
+          <p class="view-lead">3つの項目を埋めるだけで募集できます。</p>
+        </header>
+
+        <div id="postTeamHint" class="hint-card" hidden>
+          <p><b>チームを登録しておくと、募集にチーム名が表示されて応募が集まりやすくなります。</b></p>
+          <a class="button-link secondary" href="#team">チームを登録する</a>
+        </div>
+
+        <form id="listingForm" class="step-form">
+          <div id="listingFacilityBanner" class="facility-banner" hidden>
+            <span id="listingFacilityBannerText"></span>
+            <button id="clearListingFacility" type="button" class="ghost small">解除</button>
           </div>
-          <div class="team-fields">
-          <label>
-            チーム名
-            <input name="name" required placeholder="例: Hoop Stars" />
-          </label>
-          <div class="two-col">
+          <input name="facilityId" type="hidden" />
+          <input name="facilityName" type="hidden" />
+
+          <fieldset class="step">
+            <legend><span class="step-num">1</span>何を募集しますか</legend>
+            <div class="two-col">
+              <label>
+                募集の種類
+                <select name="type" required>
+                  <option value="opponent">試合相手</option>
+                  <option value="member">メンバー</option>
+                  <option value="helper">助っ人</option>
+                  <option value="pickup">個人参加</option>
+                  <option value="practice">合同練習</option>
+                  <option value="school">スクール生募集</option>
+                  <option value="trial">体験・見学</option>
+                </select>
+              </label>
+              <label>
+                カテゴリ
+                <select name="category" required>
+                  <option>U12男子</option>
+                  <option>U12女子</option>
+                  <option>U15男子</option>
+                  <option>U15女子</option>
+                  <option>U18男子</option>
+                  <option>U18女子</option>
+                  <option>大学同好会</option>
+                  <option>社会人同好会</option>
+                  <option selected>草バスケ</option>
+                  <option>MIX</option>
+                  <option>女子</option>
+                </select>
+              </label>
+            </div>
+            <div id="listingYouthConfirm" class="youth-confirm" hidden>
+              <p class="youth-note">
+                U12/U15/U18の募集は、18歳以上の成人代表者(保護者・指導者・チーム管理者)のみ作成できます。
+                選手本人の氏名・連絡先・学校名は募集内容に書かないでください。
+              </p>
+              <label class="checkbox">
+                <input id="listingAdultConfirmed" name="adultConfirmed" type="checkbox" />
+                18歳以上の代表者としてこの募集を作成します
+              </label>
+            </div>
             <label>
-              チームカテゴリ
-              <select name="category" required>
-                <option>U12男子</option>
-                <option>U12女子</option>
-                <option>U15男子</option>
-                <option>U15女子</option>
-                <option>U18男子</option>
-                <option>U18女子</option>
-                <option>大学同好会</option>
-                <option>社会人同好会</option>
-                <option>草バスケ</option>
-                <option>MIX</option>
-                <option>女子</option>
-              </select>
+              タイトル
+              <input name="title" required maxlength="100" placeholder="例: 土曜夜 5対5の練習試合をしませんか" />
             </label>
             <label>
               レベル
               <select name="level" required>
                 <option>初心者</option>
-                <option>エンジョイ</option>
+                <option selected>エンジョイ</option>
                 <option>中級</option>
                 <option>経験者中心</option>
                 <option>競技志向アマチュア</option>
               </select>
             </label>
-          </div>
-          <div class="two-col">
-            <label>
-              都道府県
-              <select id="teamPrefecture" name="prefecture" required></select>
-            </label>
-            <label>
-              市区町村
-              <select id="teamMunicipality" name="municipality" required disabled></select>
-            </label>
-          </div>
-          <label>
-            成人代表者名
-            <input name="representative" required placeholder="18歳以上の代表者名" />
-          </label>
-          <label>
-            チーム紹介
-            <textarea
-              name="notes"
-              rows="4"
-              placeholder="活動曜日、人数、対戦希望レベルなど"
-            ></textarea>
-          </label>
-          <label class="checkbox">
-            <input name="adultConfirmed" type="checkbox" required />
-            18歳以上の代表者として登録します
-          </label>
-          <div class="card-actions">
-            <button type="submit">チーム情報を保存</button>
-            <button id="clearTeam" type="button" class="danger">登録を解除</button>
-          </div>
-          <p id="teamStatus" class="status-text">未登録</p>
-          </div>
-        </form>
+          </fieldset>
 
-        <section class="panel private-panel" aria-label="非公開の応募メッセージ">
-          <h2>非公開の応募メッセージ</h2>
-          <p class="notes">
-            応募内容はこの端末内にのみ保存されます。募集一覧や他の利用者には表示されません。
-            届いた応募への返信と「マッチング成立」「見送り」の操作もここで行います。
-          </p>
-          <form id="applicationForm" class="application-form" hidden>
-            <input name="listingId" type="hidden" />
-            <p id="applicationTarget" class="target-text"></p>
-            <p class="youth-note pii-note">
-              応募メッセージには、氏名・電話番号・住所・学校名などの個人情報を書かないでください。
-              連絡先の交換が必要な場合も、選手本人ではなく成人代表者の情報のみを扱ってください。
-            </p>
-            <div id="applicationYouthConfirm" class="youth-confirm" hidden>
-              <p class="youth-note">
-                この募集はU12/U15/U18カテゴリです。応募・連絡は18歳以上の成人代表者同士で行ってください。
-              </p>
-              <label class="checkbox">
-                <input id="applicationAdultConfirmed" name="adultConfirmed" type="checkbox" />
-                18歳以上の代表者として応募します
+          <fieldset class="step">
+            <legend><span class="step-num">2</span>いつ・どこで</legend>
+            <div class="two-col">
+              <label>
+                都道府県
+                <select id="listingPrefecture" name="prefecture" required></select>
+              </label>
+              <label>
+                市区町村
+                <select id="listingMunicipality" name="municipality" required disabled></select>
               </label>
             </div>
+            <div class="two-col">
+              <label>
+                日程
+                <input name="date" type="date" required />
+              </label>
+              <label>
+                活動曜日
+                <select name="weekday">
+                  <option value="">日程から自動</option>
+                  <option>日曜</option>
+                  <option>月曜</option>
+                  <option>火曜</option>
+                  <option>水曜</option>
+                  <option>木曜</option>
+                  <option>金曜</option>
+                  <option>土曜</option>
+                  <option>祝日</option>
+                </select>
+              </label>
+            </div>
+            <label class="checkbox">
+              <input name="courtReserved" type="checkbox" />
+              体育館・コートは確保済み
+            </label>
+            <p class="field-hint">会場が決まっているときは、「コート」画面の施設カードにある「この施設で募集を作成」から始めると会場が自動で入ります。</p>
+          </fieldset>
+
+          <fieldset class="step">
+            <legend><span class="step-num">3</span>詳細と公開のしかた</legend>
             <label>
-              応募メッセージ
+              参加費
+              <input name="fee" maxlength="100" placeholder="例: 1チーム 3,000円 / 施設費を割り勘" />
+            </label>
+            <div id="listingSiteUrlField" hidden>
+              <label>
+                公式サイト(任意)
+                <input name="siteUrl" type="url" maxlength="300" inputmode="url" autocomplete="url" placeholder="例: https://example.com" />
+              </label>
+              <p class="field-hint">チーム・スクール・団体の公式サイトだけを入れてください(https:// で始まるもの)。個人のSNSは入れないでください。公式サイトを入れた募集は、運営者が確認してから公開されます。</p>
+              <p id="listingSiteUrlYouthNote" class="youth-note" hidden>U12〜U18では、スクール・クラブの公式サイトだけ入れられます。学校・部活のページや、選手の名前・顔写真が載ったページは入れないでください。</p>
+            </div>
+            <label>
+              詳細
               <textarea
-                name="message"
+                name="notes"
                 rows="5"
-                required
-                placeholder="対戦希望、人数、ユニフォーム色、確認したいことなど(個人情報は書かない)"
+                maxlength="2000"
+                placeholder="開始時間、人数、審判・TO、ユニフォームの色、駐車場など"
               ></textarea>
             </label>
-            <div id="publicApplyFields" hidden>
-              <label>
-                代表者名(ニックネーム可・任意)
-                <input name="applicantName" maxlength="100" placeholder="例: Hoop Stars 代表" />
-              </label>
-              <label>
-                連絡先(募集者にのみ表示されます)
-                <input name="contact" maxlength="300" placeholder="例: 成人代表者のメールアドレス" />
-              </label>
+            <label>
+              公開範囲
+              <select id="listingVisibility" name="visibility">
+                <option value="local">この端末だけに保存(練習・下書き用)</option>
+                <option value="public" id="publicVisibilityOption">全国に公開する</option>
+              </select>
+            </label>
+            <div id="publicConsentBox" class="youth-confirm" hidden>
               <p class="youth-note">
-                連絡先は成人代表者のものを記入してください。この内容はサーバーに保存され、
-                募集の投稿者だけが閲覧できます(<a href="./privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>)。
+                公開募集はサーバーに保存され、すべての利用者に表示されます(内容によっては運営者の確認後に公開)。
+                本文に個人情報(氏名・電話番号・住所・学校名・個人SNS等)を書かないでください。
+                投稿後に発行される管理キーで、応募の確認と募集の終了ができます。
               </p>
+              <label class="checkbox">
+                <input id="publicTermsAgree" name="termsAgree" type="checkbox" />
+                <span>
+                  <a href="./terms.html" target="_blank" rel="noopener">利用規約</a>と<a href="./privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意します
+                </span>
+              </label>
             </div>
-            <div class="card-actions">
-              <button type="submit">メッセージを送信</button>
-              <button id="cancelApplication" type="button" class="danger">キャンセル</button>
-            </div>
-          </form>
-          <p id="privateNotice" class="status-text"></p>
-          <div id="applicationList" class="private-list"></div>
-          <div id="myPublicSection" hidden>
-            <h3 class="my-public-heading">自分の公開募集</h3>
+          </fieldset>
+
+          <button type="submit" class="submit-wide">この内容で募集する</button>
+        </form>
+      </section>
+
+      <!-- ===== やりとり ===== -->
+      <section class="view view-inbox" data-view="inbox" aria-labelledby="inboxTitle" hidden>
+        <header class="view-head">
+          <p class="eyebrow">Messages</p>
+          <h1 id="inboxTitle">やりとり</h1>
+        </header>
+
+        <section class="private-panel" aria-label="非公開の応募メッセージ">
+          <p class="notes">
+            応募と返信は、募集した人と応募した人のあいだだけで見えます。やりとりのあと「マッチング成立」を押すと、募集カードに成立が表示されます。
+          </p>
+
+          <div class="segmented" role="tablist" aria-label="表示する応募">
+            <button class="segment active" type="button" role="tab" aria-selected="true" data-inbox-box="received">
+              届いた応募<span id="receivedCount" class="segment-count"></span>
+            </button>
+            <button class="segment" type="button" role="tab" aria-selected="false" data-inbox-box="sent">
+              送った応募<span id="sentCount" class="segment-count"></span>
+            </button>
+          </div>
+
+          <p id="privateNotice" class="status-text" aria-live="polite"></p>
+          <div id="applicationList" class="private-list inbox-list"></div>
+          <div id="myPublicSection" class="inbox-box" data-box="received" hidden>
+            <h2 class="sub-heading">全国に公開した自分の募集</h2>
             <p class="notes">
-              この端末から投稿した公開募集です。管理キーは端末内に保存されています
-              (機種変更前にデータ管理からバックアップしてください)。
+              管理キーはこの端末に保存されています。機種変更の前に「マイチーム」のバックアップで書き出してください。
             </p>
             <div id="myPublicList" class="private-list"></div>
           </div>
         </section>
       </section>
 
-      <section class="form-grid">
-        <form id="listingForm" class="panel">
-          <h2>募集を作成</h2>
-          <div id="listingFacilityBanner" class="facility-banner" hidden>
-            <span id="listingFacilityBannerText"></span>
-            <button id="clearListingFacility" type="button" class="secondary">解除</button>
-          </div>
-          <input name="facilityId" type="hidden" />
-          <input name="facilityName" type="hidden" />
-          <div class="two-col">
-            <label>
-              募集種別
-              <select name="type" required>
-                <option value="opponent">試合相手</option>
-                <option value="member">メンバー</option>
-                <option value="helper">助っ人</option>
-                <option value="pickup">個人参加</option>
-                <option value="practice">合同練習</option>
-              </select>
-            </label>
-            <label>
-              カテゴリ
-              <select name="category" required>
-                <option>U12男子</option>
-                <option>U12女子</option>
-                <option>U15男子</option>
-                <option>U15女子</option>
-                <option>U18男子</option>
-                <option>U18女子</option>
-                <option>大学同好会</option>
-                <option>社会人同好会</option>
-                <option>草バスケ</option>
-                <option>MIX</option>
-                <option>女子</option>
-              </select>
-            </label>
-          </div>
-          <div id="listingYouthConfirm" class="youth-confirm" hidden>
-            <p class="youth-note">
-              U12/U15/U18の募集は、18歳以上の成人代表者(保護者・指導者・チーム管理者)のみ作成できます。
-              選手本人の氏名・連絡先・学校名は募集内容に書かないでください。
-            </p>
-            <label class="checkbox">
-              <input id="listingAdultConfirmed" name="adultConfirmed" type="checkbox" />
-              18歳以上の代表者としてこの募集を作成します
-            </label>
-          </div>
-          <label>
-            タイトル
-            <input name="title" required placeholder="例: 7/14 夜 5対5の試合相手募集" />
-          </label>
-          <label>
-            公開範囲
-            <select id="listingVisibility" name="visibility">
-              <option value="local">この端末のみに保存</option>
-              <option value="public" id="publicVisibilityOption">公開募集にする(承認後に全国公開)</option>
-            </select>
-          </label>
-          <div id="publicConsentBox" class="youth-confirm" hidden>
-            <p class="youth-note">
-              公開募集はサーバーに保存され、運営者の承認後にすべての利用者へ公開されます。
-              本文に個人情報(氏名・電話番号・住所・学校名・個人SNS等)を書かないでください。
-              投稿後に発行される管理キーで、応募の確認と募集の終了ができます。
-            </p>
-            <label class="checkbox">
-              <input id="publicTermsAgree" name="termsAgree" type="checkbox" />
-              <span>
-                <a href="./terms.html" target="_blank" rel="noopener">利用規約</a>と<a href="./privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意します
-              </span>
-            </label>
-          </div>
-          <div class="two-col">
-            <label>
-              都道府県
-              <select id="listingPrefecture" name="prefecture" required></select>
-            </label>
-            <label>
-              市区町村
-              <select
-                id="listingMunicipality"
-                name="municipality"
-                required
-                disabled
-              ></select>
-            </label>
-          </div>
-          <label>
-            日程
-            <input name="date" type="date" required />
-          </label>
-          <label>
-            活動曜日
-            <select name="weekday">
-              <option value="">日程から自動判定</option>
-              <option>日曜</option>
-              <option>月曜</option>
-              <option>火曜</option>
-              <option>水曜</option>
-              <option>木曜</option>
-              <option>金曜</option>
-              <option>土曜</option>
-              <option>祝日</option>
-            </select>
-          </label>
-          <div class="two-col">
-            <label>
-              レベル
-              <select name="level" required>
-                <option>初心者</option>
-                <option>エンジョイ</option>
-                <option>中級</option>
-                <option>経験者中心</option>
-                <option>競技志向アマチュア</option>
-              </select>
-            </label>
-            <label>
-              参加費
-              <input name="fee" placeholder="例: 1チーム 3,000円" />
-            </label>
-          </div>
-          <label class="checkbox">
-            <input name="courtReserved" type="checkbox" />
-            体育館確保済み
-          </label>
-          <label>
-            詳細
-            <textarea
-              name="notes"
-              rows="5"
-              placeholder="審判、TO、ユニフォーム色、駐車場、注意事項など"
-            ></textarea>
-          </label>
-          <button type="submit">保存</button>
-        </form>
+      <!-- ===== マイチーム ===== -->
+      <section class="view view-team" data-view="team" aria-labelledby="teamTitle" hidden>
+        <header class="view-head">
+          <p class="eyebrow">My Team</p>
+          <h1 id="teamTitle">マイチーム</h1>
+        </header>
 
-        <form id="facilityForm" class="panel add-facility-panel">
-          <h2>施設情報を追加</h2>
-          <label>
-            施設名
-            <input name="name" required placeholder="例: 体育館名、民間レンタルコート名" />
-          </label>
-          <label>
-            施設タイプ
-            <select name="facilityType" required>
-              <option>体育館</option>
-              <option>民間コート</option>
-              <option>商業施設</option>
-              <option>屋外コート</option>
-              <option>多目的施設</option>
-              <option>学校開放</option>
-            </select>
-          </label>
-          <label>
-            都道府県
-            <select id="facilityPrefecture" name="prefecture" required></select>
-          </label>
-          <label>
-            市区町村
-            <select id="facilityMunicipality" name="municipality" required>
-              <option value="">都道府県を選択してください</option>
-            </select>
-          </label>
-          <label id="facilityMunicipalityOtherLabel" hidden>
-            市区町村(直接入力)
-            <input
-              id="facilityMunicipalityOther"
-              name="municipalityOther"
-              placeholder="例: 世田谷区"
-            />
-          </label>
-          <label>
-            予約方法
-            <select name="reservationMethod" required>
-              <option>自治体予約システム</option>
-              <option>民間予約サイト</option>
-              <option>公式サイト確認</option>
-              <option>Web予約</option>
-              <option>会員予約</option>
-              <option>電話予約</option>
-              <option>窓口予約</option>
-              <option>抽選制</option>
-              <option>チーム代表者確認が必要</option>
-            </select>
-          </label>
-          <label>
-            公式・予約サイトURL
-            <input name="url" type="url" placeholder="https://..." />
-          </label>
-          <label>
-            情報確認日
-            <input name="lastChecked" type="date" />
-          </label>
-          <label>
-            メモ
-            <textarea
-              name="notes"
-              rows="4"
-              placeholder="コート数、リング、駐車場、更衣室、空調、床の状態、民間施設の利用条件など"
-            ></textarea>
-          </label>
-          <button type="submit">施設を保存</button>
-        </form>
+        <p id="teamNotice" class="notice-card" hidden></p>
+
+        <div class="panel">
+          <h2 class="panel-title">チーム情報</h2>
+          <form id="teamForm" class="stack-form">
+            <div id="teamProfile" class="team-profile" hidden>
+              <span id="teamAvatar" class="avatar large" aria-hidden="true"></span>
+              <div class="team-profile-main">
+                <h3 id="teamProfileName"></h3>
+                <p id="teamProfileMeta"></p>
+                <span class="verified-badge">成人代表者 確認済み</span>
+              </div>
+              <button id="editTeam" type="button" class="ghost small">編集</button>
+            </div>
+            <div class="team-fields">
+              <p class="notes">試合相手への応募にはチーム登録が必要です。登録内容はこの端末に保存され、募集や応募にチーム名として表示されます。</p>
+              <label>
+                チーム名
+                <input name="name" required placeholder="例: Hoop Stars" />
+              </label>
+              <div class="two-col">
+                <label>
+                  チームカテゴリ
+                  <select name="category" required>
+                    <option>U12男子</option>
+                    <option>U12女子</option>
+                    <option>U15男子</option>
+                    <option>U15女子</option>
+                    <option>U18男子</option>
+                    <option>U18女子</option>
+                    <option>大学同好会</option>
+                    <option>社会人同好会</option>
+                    <option selected>草バスケ</option>
+                    <option>MIX</option>
+                    <option>女子</option>
+                  </select>
+                </label>
+                <label>
+                  レベル
+                  <select name="level" required>
+                    <option>初心者</option>
+                    <option selected>エンジョイ</option>
+                    <option>中級</option>
+                    <option>経験者中心</option>
+                    <option>競技志向アマチュア</option>
+                  </select>
+                </label>
+              </div>
+              <div class="two-col">
+                <label>
+                  都道府県
+                  <select id="teamPrefecture" name="prefecture" required></select>
+                </label>
+                <label>
+                  市区町村
+                  <select id="teamMunicipality" name="municipality" required disabled></select>
+                </label>
+              </div>
+              <label>
+                成人代表者名
+                <input name="representative" required placeholder="18歳以上の代表者名(ニックネーム可)" />
+              </label>
+              <label>
+                チーム紹介
+                <textarea name="notes" rows="4" placeholder="活動曜日、人数、対戦希望レベルなど"></textarea>
+              </label>
+              <label class="checkbox">
+                <input name="adultConfirmed" type="checkbox" required />
+                18歳以上の代表者として登録します
+              </label>
+              <div class="card-actions">
+                <button type="submit">チーム情報を保存</button>
+                <button id="clearTeam" type="button" class="danger">登録を解除</button>
+              </div>
+            </div>
+            <p id="teamStatus" class="status-text">未登録</p>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">自分の募集</h2>
+          <div id="myListingList" class="private-list"></div>
+        </div>
+
+        <details class="panel fold data-panel">
+          <summary>データのバックアップ・引っ越し</summary>
+          <p class="notes">
+            チーム情報・募集・やりとりはこの端末に保存されています。機種変更の前や、念のためのバックアップに「書き出す」を使ってください。
+            読み込むと、この端末の今のデータはファイルの内容に置き換わります。
+          </p>
+          <div class="card-actions">
+            <button id="exportData" type="button" class="secondary">バックアップを書き出す</button>
+            <label class="import-label">
+              バックアップを読み込む
+              <input id="importData" type="file" accept="application/json" />
+            </label>
+          </div>
+          <p id="dataStatus" class="status-text"></p>
+        </details>
+
+        <details class="panel fold">
+          <summary>安全に使うために</summary>
+          <ul class="legal-list">
+            <li>U12〜U18の募集・応募は、18歳以上の代表者(保護者・指導者)どうしで行ってください。</li>
+            <li>募集や応募の本文に、氏名・電話番号・住所・学校名などの個人情報を書かないでください。</li>
+            <li>気になる公開募集は、カードの「通報」から運営者に知らせることができます。</li>
+            <li>体育館の空き状況や予約は、必ず各施設の公式ページで確認してください。</li>
+          </ul>
+          <p class="notes legal-links">
+            <a href="./terms.html">利用規約</a> ・ <a href="./privacy.html">プライバシーポリシー</a>
+          </p>
+        </details>
       </section>
+    </main>
 
-      <section class="panel">
-        <h2>安全・法務メモ</h2>
-        <p class="notes"><a href="./terms.html">利用規約(ドラフト)</a> / <a href="./privacy.html">プライバシーポリシー(ドラフト)</a> / <a href="./docs/backend-setup.md">公開機能セットアップ手順</a></p>
-        <ul class="legal-list">
-          <li>未成年カテゴリはチーム代表者を成人に限定し、未成年個人への直接DMを扱わない。</li>
-          <li>初期版は端末内保存のみ。サーバーに個人情報を送信しない。</li>
-          <li>公開機能、決済、広告、本人確認を入れる前に、利用規約・プライバシーポリシー・特商法表示を専門家確認に回す。</li>
-          <li>体育館情報は公式予約ページへのリンク、確認日、ユーザーメモに留め、空き状況の自動取得は各施設の規約確認後に実装する。</li>
-        </ul>
-      </section>
-
-      <details class="panel data-panel">
-        <summary>データ管理</summary>
-        <p class="notes">
-          端末内保存のバックアップや、機種変更・別端末への移行、データ消失対策に使います。
-          定期的に「JSONを書き出す」でバックアップファイルを保存しておくと安全です。
-          読み込むと、この端末の現在のデータはファイルの内容で置き換えられます。
+    <dialog id="applyDialog" class="sheet" aria-labelledby="applicationTarget">
+      <form id="applicationForm" class="stack-form" hidden>
+        <div class="sheet-head">
+          <p id="applicationTarget" class="target-text"></p>
+          <button id="cancelApplication" type="button" class="ghost small">閉じる</button>
+        </div>
+        <input name="listingId" type="hidden" />
+        <p class="youth-note pii-note">
+          応募メッセージには、氏名・電話番号・住所・学校名などの個人情報を書かないでください。
+          連絡先の交換が必要な場合も、選手本人ではなく成人代表者の情報のみを扱ってください。
         </p>
-        <div class="header-actions">
-          <button id="exportData" type="button">JSONを書き出す</button>
-          <label class="import-label">
-            JSONを読み込む
-            <input id="importData" type="file" accept="application/json" />
+        <div id="applicationYouthConfirm" class="youth-confirm" hidden>
+          <p class="youth-note">
+            この募集はU12/U15/U18カテゴリです。応募・連絡は18歳以上の成人代表者同士で行ってください。
+          </p>
+          <label class="checkbox">
+            <input id="applicationAdultConfirmed" name="adultConfirmed" type="checkbox" />
+            18歳以上の代表者として応募します
           </label>
         </div>
-        <p id="dataStatus" class="status-text"></p>
-      </details>
-    </main>
+        <label>
+          応募メッセージ
+          <textarea
+            name="message"
+            rows="5"
+            required
+            placeholder="人数、希望の時間、ユニフォームの色、確認したいことなど(個人情報は書かない)"
+          ></textarea>
+        </label>
+        <div id="publicApplyFields" hidden>
+          <label>
+            <span id="applicantNameLabel">代表者名(ニックネーム可・任意)</span>
+            <input name="applicantName" maxlength="100" placeholder="例: Hoop Stars 代表" />
+          </label>
+          <div id="publicContactFields">
+            <label>
+              連絡先(募集者にのみ表示されます)
+              <input name="contact" maxlength="300" placeholder="例: 成人代表者のメールアドレス" />
+            </label>
+            <p class="youth-note">
+              連絡先は成人代表者のものを記入してください。この内容はサーバーに保存され、
+              募集の投稿者だけが閲覧できます(<a href="./privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>)。
+            </p>
+          </div>
+        </div>
+        <p id="applicationNotice" class="form-error" aria-live="assertive"></p>
+        <button type="submit" class="submit-wide">応募を送る</button>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
     <template id="listingTemplate">
       <article class="listing-card">
         <div class="card-top">
           <span class="badge"></span>
-          <span class="fresh-badge" hidden>NEW</span>
-        </div>
-        <div class="listing-date-block">
-          <span class="date"></span>
-          <span class="weekday"></span>
-          <span class="days-left" hidden></span>
+          <span class="listing-date-block">
+            <span class="date"></span>
+            <span class="weekday"></span>
+          </span>
+          <span class="card-top-end">
+            <span class="fresh-badge" hidden>NEW</span>
+            <span class="days-left" hidden></span>
+          </span>
         </div>
         <h3></h3>
+        <p class="where"><svg aria-hidden="true"><use href="#i-pin" /></svg><span class="where-text"></span></p>
         <div class="tag-row"></div>
-        <p class="meta"></p>
         <p class="notes"></p>
+        <p class="site-line" hidden>
+          <a class="site-link" target="_blank" rel="noopener noreferrer nofollow ugc">
+            公式サイト<span class="site-domain"></span><span aria-hidden="true"> ↗</span>
+          </a>
+        </p>
         <details class="listing-team" hidden>
-          <summary>募集チームの情報</summary>
+          <summary>募集チームの紹介</summary>
           <div class="listing-team-body"></div>
         </details>
         <p class="match-status" hidden></p>
+        <div class="card-foot">
+          <span class="team-chip">
+            <span class="avatar" aria-hidden="true"></span>
+            <span class="team-name"></span>
+          </span>
+          <p class="meta"></p>
+        </div>
         <div class="card-actions">
           <button class="apply" type="button">応募する</button>
           <button class="view-applications secondary" type="button" hidden>応募を確認</button>
           <button
-            class="copy"
+            class="copy ghost"
             type="button"
-            title="募集内容の紹介文をコピー・共有します。LINEやメールに貼り付けて、アプリ外の相手にも募集を知らせることができます"
+            title="募集の紹介文をLINEやメールで共有します(アプリを使っていない相手にも知らせられます)"
           >
-            共有文をコピー
+            <svg aria-hidden="true"><use href="#i-share" /></svg><span class="copy-label">共有</span>
           </button>
-          <button class="delete danger" type="button">削除</button>
+          <button class="delete text-button" type="button">削除</button>
         </div>
       </article>
     </template>
 
-    <script src="./data/config.js?v=44"></script>
-    <script src="./data/facilities.js?v=44"></script>
-    <script src="./app.js?v=44"></script>
+    <script src="./data/config.js?v=52"></script>
+    <script src="./data/facilities.js?v=52"></script>
+    <script src="./app.js?v=52"></script>
   </body>
 </html>

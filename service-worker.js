@@ -1,4 +1,4 @@
-const CACHE_NAME = "hoop-match-v44";
+const CACHE_NAME = "hoop-match-v52";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,8 +6,8 @@ const ASSETS = [
   "./app.js",
   "./data/config.js",
   "./data/facilities.js",
-  "./assets/hero-court.png",
-  "./assets/ogp.jpg",
+  "./assets/hero-court.jpg",
+  "./assets/icon-180.png",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
   "./manifest.webmanifest",
@@ -29,12 +29,26 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// ネットワーク優先: つながるときは常に最新を表示し、キャッシュも更新する。
+// オフラインのときだけキャッシュから表示する(更新後に古い画面が残る事故を防ぐ)。
 self.addEventListener("fetch", (event) => {
-  // サーバーAPI(supabase等の外部オリジン)はキャッシュせず常にネットワークへ
-  if (new URL(event.request.url).origin !== self.location.origin) {
+  const { request } = event;
+  // サーバーAPI(supabase等の外部オリジン)と送信系リクエストはキャッシュしない
+  if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) {
     return;
   }
+  // ブラウザのHTTPキャッシュも素通りさせず、サーバーに更新有無を確認する(変更がなければ304で軽い)。
+  // ページ遷移のリクエストはオプション付きで作り直せないため、そのまま取得する
+  const networkRequest = request.mode === "navigate" ? fetch(request) : fetch(request, { cache: "no-cache" });
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request)),
+    networkRequest
+      .then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => {});
+        }
+        return response;
+      })
+      .catch(() => caches.match(request, { ignoreSearch: true })),
   );
 });

@@ -6,7 +6,41 @@ const typeLabels = {
   helper: "助っ人",
   pickup: "個人参加",
   practice: "合同練習",
+  school: "スクール生募集",
+  trial: "体験・見学",
 };
+
+// チーム登録なしで、代表者名と連絡先だけで応募できる種類(保護者や個人の応募を想定)
+const OPEN_APPLY_TYPES = ["school", "trial"];
+
+function isOpenApplyType(type) {
+  return OPEN_APPLY_TYPES.includes(type);
+}
+
+// 公式サイト欄を使えるかどうか(2026-11-01 案B、2026-11-04 スクールだけ許可)。
+// U12/U15/U18では、スクール生募集だけ使える(学校の部活のサイトから学校名が分かるため、他の種類は不可)。
+// 将来すべてに広げるときは SITE_URL_ALLOW_YOUTH を true にして、terms.html の「学校名」の文言も見直す。
+const SITE_URL_ALLOW_YOUTH = false;
+const SITE_URL_YOUTH_TYPES = ["school"];
+
+function canUseSiteUrl(type, category) {
+  if (!isYouthCategory(category)) return true;
+  return SITE_URL_ALLOW_YOUTH || SITE_URL_YOUTH_TYPES.includes(type);
+}
+
+// 公式サイトのURLを確かめる。空なら""、https:// の正しいURLなら整えた文字列、それ以外はnull
+function normalizeSiteUrl(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (text.length > 300 || /\s/.test(text) || !/^https:\/\//i.test(text)) return null;
+  try {
+    const url = new URL(text);
+    if (url.protocol !== "https:" || !url.hostname.includes(".") || url.href.length > 300) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+}
 
 const weekdayLabels = ["日曜", "月曜", "火曜", "水曜", "木曜", "金曜", "土曜"];
 // 施設カタログは data/facilities.json が正。
@@ -15,43 +49,6 @@ const facilityCatalog = Array.isArray(window.FACILITY_CATALOG) ? window.FACILITY
 if (!Array.isArray(window.FACILITY_CATALOG)) {
   console.warn("施設カタログ (data/facilities.js) が読み込まれていません。index.htmlのscriptタグとファイルの存在を確認してください。");
 }
-const facilityDirectoryLinks = [
-  {
-    prefecture: "東京都",
-    municipality: "世田谷区",
-    title: "世田谷区スポーツ施設案内",
-    url: "https://www.se-sports.or.jp/facility/",
-    reservationUrl: "https://www.city.setagaya.lg.jp/mokuji/kusei/012/015/001/002/d00125065.html",
-    note: "世田谷区スポーツ振興財団の施設一覧。団体利用はけやきネット登録が必要です。",
-  },
-  {
-    prefecture: "東京都",
-    municipality: "世田谷区",
-    title: "駒沢オリンピック公園総合運動場",
-    url: "https://www.tef.or.jp/kopgp/",
-    reservationUrl: "https://sports.tef.or.jp/",
-    note: "東京都スポーツ文化事業団の施設案内。体育館・屋内球技場などの団体利用情報を確認できます。",
-  },
-  {
-    title: "LaBOLAのスポーツ施設を探す",
-    url: "https://labola.jp/r/shop/",
-    note: "民間施設、フットサル施設、レンタルコートなども含めて探せる外部施設検索です。",
-    private: true,
-  },
-  {
-    title: "民間レンタルコートを地図で探す",
-    url: "https://www.google.com/maps/search/?api=1&query=%E3%83%90%E3%82%B9%E3%82%B1%E3%83%83%E3%83%88%E3%83%9C%E3%83%BC%E3%83%AB%20%E6%B0%91%E9%96%93%E3%82%B3%E3%83%BC%E3%83%88%20%E3%83%AC%E3%83%B3%E3%82%BF%E3%83%AB%E3%82%B3%E3%83%BC%E3%83%88",
-    note: "自治体以外のレンタルコート、商業施設、スポーツ複合施設を地図から確認します。",
-    private: true,
-  },
-  {
-    title: "ラウンドワン スポッチャ施設を確認",
-    url: "https://www.round1.co.jp/service/spo-cha/",
-    note: "商業施設型のスポーツ利用候補です。店舗ごとの設備、利用条件、混雑状況は公式ページで確認してください。",
-    private: true,
-  },
-];
-
 const prefectures = [
   "北海道",
   "青森県",
@@ -2096,10 +2093,26 @@ const municipalitySeeds = {
 
 const municipalityMaster = municipalitySeeds;
 
+// crypto.randomUUID は secure context(https / localhost)かつ iOS Safari 15.4 以降でしか
+// 使えない。LAN の http や旧 iOS では undefined となり、top-level の sampleState 初期化で
+// TypeError になって app.js 全体が停止するため、getRandomValues による UUID v4 生成へ
+// フォールバックする(getRandomValues は非 secure context でも利用可能)。
+function generateId() {
+  if (window.crypto && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 const sampleState = {
   listings: [
     {
-      id: crypto.randomUUID(),
+      id: generateId(),
       type: "opponent",
       category: "草バスケ",
       title: "土曜夜 5対5の試合相手募集",
@@ -2114,7 +2127,7 @@ const sampleState = {
       notes: "体育館確保済み。白・濃色のリバーシブル持参。審判は相互で相談。",
     },
     {
-      id: crypto.randomUUID(),
+      id: generateId(),
       type: "member",
       category: "社会人同好会",
       title: "日曜午前の継続メンバー募集",
@@ -2129,7 +2142,7 @@ const sampleState = {
       notes: "メンバー募集のため、試合相手検索では除外できます。",
     },
     {
-      id: crypto.randomUUID(),
+      id: generateId(),
       type: "opponent",
       category: "U18女子",
       title: "U18女子 練習試合の相手募集",
@@ -2144,7 +2157,7 @@ const sampleState = {
       notes: "成人代表者同士で連絡。選手個人への直接連絡は不可。",
     },
     {
-      id: crypto.randomUUID(),
+      id: generateId(),
       type: "practice",
       category: "U12男子",
       title: "U12男子 合同練習相手募集",
@@ -2176,6 +2189,10 @@ const elements = {
   publicConsentBox: document.querySelector("#publicConsentBox"),
   publicTermsAgree: document.querySelector("#publicTermsAgree"),
   publicApplyFields: document.querySelector("#publicApplyFields"),
+  publicContactFields: document.querySelector("#publicContactFields"),
+  applicantNameLabel: document.querySelector("#applicantNameLabel"),
+  listingSiteUrlField: document.querySelector("#listingSiteUrlField"),
+  listingSiteUrlYouthNote: document.querySelector("#listingSiteUrlYouthNote"),
   myPublicSection: document.querySelector("#myPublicSection"),
   myPublicList: document.querySelector("#myPublicList"),
   teamForm: document.querySelector("#teamForm"),
@@ -2208,10 +2225,26 @@ const elements = {
   filterWeekday: document.querySelector("#filterWeekday"),
   filterSort: document.querySelector("#filterSort"),
   applyListingFilters: document.querySelector("#applyListingFilters"),
+  resetListingFilters: document.querySelector("#resetListingFilters"),
+  filterPanel: document.querySelector("#filterPanel"),
   listingTabs: document.querySelectorAll("[data-listing-tab]"),
-  heroActions: document.querySelectorAll("[data-hero-action]"),
-  summaryActions: document.querySelectorAll("[data-summary-action]"),
-  homeButton: document.querySelector("#homeButton"),
+  quickChips: document.querySelectorAll("[data-quick]"),
+  chipCounts: document.querySelectorAll("[data-count-type]"),
+  viewLinks: document.querySelectorAll("[data-view-link]"),
+  views: document.querySelectorAll(".view[data-view]"),
+  areaButton: document.querySelector("#areaButton"),
+  areaLabel: document.querySelector("#areaLabel"),
+  inboxTabBadge: document.querySelector("#inboxTabBadge"),
+  inboxSegments: document.querySelectorAll("[data-inbox-box]"),
+  receivedCount: document.querySelector("#receivedCount"),
+  sentCount: document.querySelector("#sentCount"),
+  applyDialog: document.querySelector("#applyDialog"),
+  toast: document.querySelector("#toast"),
+  facilityTotal: document.querySelector("#facilityTotal"),
+  postTeamHint: document.querySelector("#postTeamHint"),
+  teamNotice: document.querySelector("#teamNotice"),
+  teamAvatar: document.querySelector("#teamAvatar"),
+  myListingList: document.querySelector("#myListingList"),
   activeResultCount: document.querySelector("#activeResultCount"),
   listingPrefecture: document.querySelector("#listingPrefecture"),
   listingMunicipality: document.querySelector("#listingMunicipality"),
@@ -2240,10 +2273,6 @@ const elements = {
   listingFacilityBanner: document.querySelector("#listingFacilityBanner"),
   listingFacilityBannerText: document.querySelector("#listingFacilityBannerText"),
   clearListingFacility: document.querySelector("#clearListingFacility"),
-  countMatch: document.querySelector("#countMatch"),
-  countMember: document.querySelector("#countMember"),
-  countPickup: document.querySelector("#countPickup"),
-  countFacilities: document.querySelector("#countFacilities"),
 };
 
 let activeListingFilters = {
@@ -2263,7 +2292,7 @@ let activeListingFilters = {
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) {
-    return normalizeState({ listings: [], facilities: sampleState.facilities, team: null, applications: [], myPublicListings: [], hiddenFacilityIds: [] });
+    return normalizeState({ listings: [], facilities: [], team: null, applications: [], myPublicListings: [], hiddenFacilityIds: [] });
   }
 
   try {
@@ -2282,6 +2311,9 @@ function loadState() {
 }
 
 function normalizeState(nextState) {
+  // 旧バージョンが localStorage に複製したカタログ施設を除去する(ユーザー追加分のみ保持)。
+  // カタログとの合成は getAllFacilities() が読み出し時に行う。
+  const catalogIds = new Set(sampleState.facilities.map((facility) => facility.id));
   return {
     ...nextState,
     listings: nextState.listings.map((listing) => {
@@ -2305,7 +2337,9 @@ function normalizeState(nextState) {
 
       return normalizedListing;
     }),
-    facilities: nextState.facilities.map(normalizeLocation),
+    facilities: nextState.facilities
+      .filter((facility) => !catalogIds.has(facility.id))
+      .map(normalizeLocation),
     team: nextState.team ? normalizeLocation(nextState.team) : null,
     // 応募には返信スレッドとマッチング状態を持たせる(旧データには初期値を補完)
     applications: (Array.isArray(nextState.applications) ? nextState.applications : []).map(
@@ -2423,12 +2457,6 @@ function updateFacilitySearchMunicipalitySelect() {
     elements.facilitySearchMunicipality.value = currentValue;
   }
   elements.facilitySearchMunicipality.disabled = prefecture === "all";
-}
-
-function updateMunicipalityDatalist(prefecture, datalist) {
-  const options = getMunicipalityOptions(prefecture);
-  datalist.replaceChildren();
-  options.forEach((option) => datalist.append(new Option(option, option)));
 }
 
 // 施設追加フォームの市区町村セレクトを都道府県に応じて更新する。
@@ -2562,6 +2590,7 @@ function mapPublicRow(row) {
     notes: row.notes || "",
     facilityName: row.facility_name || "",
     adultConfirmed: Boolean(row.adult_confirmed),
+    siteUrl: row.site_url || "",
     createdAt: row.created_at,
   });
 }
@@ -2584,10 +2613,10 @@ async function loadPublicListings({ silent = false } = {}) {
     markListingsSeen();
     checkPublicInbox();
     renderCounts();
-    setPublicStatus(`公開募集 ${publicListings.length}件 (${new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}時点)`);
+    setPublicStatus(`公開募集 ${publicListings.length}件 (${new Date().toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}時点)`);
     renderListings();
   } catch (error) {
-    setPublicStatus(`公開募集を読み込めませんでした: ${error.message}`, true);
+    setPublicStatus("全国の募集を読み込めませんでした。通信状況を確かめて「最新に更新」を押してください。", true);
   }
 }
 
@@ -2609,6 +2638,7 @@ async function submitPublicListing(data) {
     p_notes: data.notes || null,
     p_facility_name: data.facilityName || null,
     p_adult_confirmed: data.adultConfirmed === "on",
+    p_site_url: data.siteUrl || null,
   });
   return result;
 }
@@ -2705,10 +2735,7 @@ function countUnseen(current, seen) {
   return Math.max(0, (current || 0) - (seen || 0));
 }
 
-// トップの「新着メッセージが届いています」バナーを更新する。
-// タップで「非公開の応募メッセージ」までスクロールする。
-function updateInboxBanner() {
-  if (!elements.inboxBanner) return;
+function countInboxUnread() {
   let newApplications = 0;
   let newReplies = 0;
   state.myPublicListings.forEach((entry) => {
@@ -2720,6 +2747,29 @@ function updateInboxBanner() {
       newReplies += countUnseen(application.ownerReplyCount, application.seenOwnerReplyCount);
     }
   });
+  return { newApplications, newReplies };
+}
+
+// 下タブ「やりとり」の数字: 未読の応募・返信と、この端末の募集に届いてまだ返事をしていない応募
+function updateInboxTabBadge() {
+  if (!elements.inboxTabBadge) return;
+  const { newApplications, newReplies } = countInboxUnread();
+  const undecided = state.applications.filter(
+    (application) =>
+      !application.sentToPublic &&
+      (application.status || "pending") === "pending" &&
+      state.listings.some((listing) => listing.id === application.listingId),
+  ).length;
+  const total = newApplications + newReplies + undecided;
+  elements.inboxTabBadge.textContent = total > 99 ? "99+" : String(total);
+  elements.inboxTabBadge.hidden = total === 0;
+}
+
+// 画面上部の「新着メッセージが届いています」バナーを更新する。タップで「やりとり」を開く
+function updateInboxBanner() {
+  updateInboxTabBadge();
+  if (!elements.inboxBanner) return;
+  const { newApplications, newReplies } = countInboxUnread();
   const total = newApplications + newReplies;
   if (total === 0) {
     elements.inboxBanner.hidden = true;
@@ -2811,7 +2861,7 @@ function renderMyPublicListings() {
             threadBox.className = "application-messages";
             const appendThreadMessage = (fromRole, text, createdAt) => {
               const wrap = document.createElement("div");
-              wrap.className = `application-message ${fromRole === "owner" ? "owner" : "applicant"}`;
+              wrap.className = `application-message ${fromRole === "owner" ? "owner mine" : "applicant"}`;
               const role = document.createElement("span");
               role.className = "role";
               role.textContent = `${fromRole === "owner" ? "募集者(自分)" : "応募者"}${
@@ -2841,7 +2891,7 @@ function renderMyPublicListings() {
             replyButton.addEventListener("click", async () => {
               const text = replyInput.value.trim();
               if (!text) {
-                replyInput.focus();
+                revealAndFocus(replyInput);
                 return;
               }
               replyButton.disabled = true;
@@ -2925,6 +2975,9 @@ function renderMyPublicListings() {
     card.append(title, meta, actions, detail);
     elements.myPublicList.append(card);
   });
+
+  renderInboxEmpty();
+  renderMyListings();
 }
 
 function renderHiddenFacilities() {
@@ -3011,6 +3064,23 @@ function updateListingYouthConfirm() {
   if (!isYouth) {
     elements.listingAdultConfirmed.checked = false;
   }
+  updateListingTypeFields();
+}
+
+const DEFAULT_FEE_PLACEHOLDER = "例: 1チーム 3,000円 / 施設費を割り勘";
+const OPEN_TYPE_FEE_PLACEHOLDER = "例: 月謝 5,000円 / 体験 500円";
+
+// 種類・カテゴリに応じて、公式サイト欄と参加費の例を切り替える
+function updateListingTypeFields() {
+  const form = elements.listingForm;
+  const showSite = canUseSiteUrl(form.elements.type.value, form.elements.category.value);
+  elements.listingSiteUrlField.hidden = !showSite;
+  if (!showSite) form.elements.siteUrl.value = "";
+  // U12〜U18のスクールでは、学校・部活のページを入れないよう追加の注意を出す
+  elements.listingSiteUrlYouthNote.hidden = !(showSite && isYouthCategory(form.elements.category.value));
+  form.elements.fee.placeholder = isOpenApplyType(form.elements.type.value)
+    ? OPEN_TYPE_FEE_PLACEHOLDER
+    : DEFAULT_FEE_PLACEHOLDER;
 }
 
 function parseLocalDate(value) {
@@ -3053,6 +3123,16 @@ function formatDaysLeft(daysLeft) {
   return `あと${daysLeft}日`;
 }
 
+// 今日から見た「今週末」(土曜・日曜)。日曜に開いた場合はその日だけを返す
+function getUpcomingWeekend(today) {
+  const day = today.getDay();
+  const start = new Date(today);
+  if (day !== 0) start.setDate(today.getDate() + ((6 - day + 7) % 7));
+  const end = new Date(start);
+  if (start.getDay() === 6) end.setDate(start.getDate() + 1);
+  return { start, end };
+}
+
 function isFreshListing(listing) {
   if (!listing.createdAt) return false;
   const createdAt = new Date(listing.createdAt);
@@ -3075,10 +3155,11 @@ function getFilteredListings() {
     sort,
   } = activeListingFilters;
   const today = getToday();
+  const weekend = dateRange === "weekend" ? getUpcomingWeekend(today) : null;
   const lastDate =
-    dateRange === "all"
+    dateRange === "all" || weekend
       ? null
-      : new Date(today.getTime() + Number(dateRange) * 24 * 60 * 60 * 1000);
+      : new Date(today.getFullYear(), today.getMonth(), today.getDate() + Number(dateRange));
   const normalizedKeyword = keyword.trim().toLowerCase();
 
   const listingMatches = (listing) => {
@@ -3091,6 +3172,7 @@ function getFilteredListings() {
       listing.level,
       listing.fee,
       listing.notes,
+      listing.facilityName,
       typeLabels[listing.type],
     ]
       .join(" ")
@@ -3099,7 +3181,10 @@ function getFilteredListings() {
       type === "all" ||
       listing.type === type ||
       (type === "pickup-helper" && ["pickup", "helper"].includes(listing.type));
-    const matchesCategory = category === "all" || listing.category === category;
+    const matchesCategory =
+      category === "all" ||
+      listing.category === category ||
+      (category === "youth" && isYouthCategory(listing.category));
     const matchesLevel = level === "all" || listing.level === level;
     const matchesKeyword = !normalizedKeyword || haystack.includes(normalizedKeyword);
     const matchesPrefecture = prefecture === "all" || listing.prefecture === prefecture;
@@ -3107,7 +3192,9 @@ function getFilteredListings() {
       municipality === "all" || listing.municipality === municipality;
     const matchesCourt = !courtOnly || listing.courtReserved;
     const matchesActive = !activeOnly || !listingDate || listingDate >= today;
-    const matchesDateRange = !lastDate || (listingDate && listingDate <= lastDate);
+    const matchesDateRange = weekend
+      ? Boolean(listingDate) && listingDate >= weekend.start && listingDate <= weekend.end
+      : !lastDate || (listingDate && listingDate <= lastDate);
     const matchesWeekday = weekday === "all" || (listingDate && listingDate.getDay() === Number(weekday));
 
     return (
@@ -3209,107 +3296,6 @@ function getFacilitySearchAreaLabel() {
   return `${prefecture}${municipality}`;
 }
 
-function getFacilityLookupLinks() {
-  const prefecture = elements.facilitySearchPrefecture.value;
-  const municipality = elements.facilitySearchMunicipality.value;
-  const area = getFacilitySearchAreaLabel();
-  const keyword = elements.facilitySearchKeyword.value.trim();
-  const baseQuery = `${area} バスケットボール 体育館 民間コート レンタルコート 商業施設 ${keyword}`.trim();
-  const directoryMatches = facilityDirectoryLinks.filter((link) => {
-    if (link.private) return true;
-    const matchesPrefecture = prefecture === "all" || link.prefecture === prefecture;
-    const matchesMunicipality =
-      municipality === "all" || !link.municipality || link.municipality === municipality;
-    return matchesPrefecture && matchesMunicipality;
-  });
-
-  return [
-    ...directoryMatches.map((link) => ({
-      title: link.title,
-      url: link.url,
-      reservationUrl: link.reservationUrl,
-      note: link.note,
-    })),
-    {
-      title: `${area}の公共・民間施設を検索`,
-      url: `https://www.google.com/search?q=${encodeURIComponent(`${baseQuery} 公式 予約`)}`,
-      note: "アプリ未収録の体育館、民間コート、商業施設、学校開放施設を公式ページから確認します。",
-    },
-    {
-      title: `${area}の地図から探す`,
-      url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(baseQuery)}`,
-      note: "地図検索で近隣の体育館、スポーツセンター、民間レンタルコート、屋外コート候補を確認します。",
-    },
-  ];
-}
-
-function createFacilityLookupItem(link) {
-  const item = document.createElement("article");
-  item.className = "facility-item lookup-item";
-
-  const top = document.createElement("div");
-  top.className = "facility-top";
-
-  const title = document.createElement("a");
-  title.href = link.url;
-  title.target = "_blank";
-  title.rel = "noreferrer";
-  title.className = "facility-title-link";
-  title.textContent = link.title;
-
-  const tag = document.createElement("span");
-  tag.className = "facility-tag lookup";
-  tag.textContent = "外部検索";
-
-  top.append(title, tag);
-
-  const note = document.createElement("p");
-  note.textContent = link.note;
-
-  const actions = document.createElement("div");
-  actions.className = "card-actions";
-
-  const openLink = document.createElement("a");
-  openLink.href = link.url;
-  openLink.target = "_blank";
-  openLink.rel = "noreferrer";
-  openLink.className = "button-link";
-  openLink.textContent = "開く";
-  actions.append(openLink);
-
-  if (link.reservationUrl) {
-    const reserveLink = document.createElement("a");
-    reserveLink.href = link.reservationUrl;
-    reserveLink.target = "_blank";
-    reserveLink.rel = "noreferrer";
-    reserveLink.className = "button-link map-link";
-    reserveLink.textContent = "予約方法を見る";
-    actions.append(reserveLink);
-  }
-
-  item.append(top, note, actions);
-  return item;
-}
-
-function renderFacilityLookupLinks() {
-  const guide = document.createElement("article");
-  guide.className = "facility-empty";
-
-  const title = document.createElement("h3");
-  title.textContent = "公共施設以外の民間コートも確認できます";
-
-  const text = document.createElement("p");
-  text.textContent =
-    "自治体体育館に加えて、民間レンタルコート、商業施設、予約サイトの検索リンクも表示します。";
-
-  guide.append(title, text);
-  elements.facilityList.append(guide);
-
-  getFacilityLookupLinks().forEach((link) => {
-    elements.facilityList.append(createFacilityLookupItem(link));
-  });
-}
-
 function render() {
   renderListings();
   renderFacilities();
@@ -3318,21 +3304,54 @@ function render() {
   renderCounts();
 }
 
+// 「1000円」「1000」のような数値のみの参加費をカンマ区切りに揃える(表示専用。保存データは変更しない)
+function formatFee(fee) {
+  const matched = /^([0-9][0-9,]*)\s*円?$/.exec(String(fee ?? "").trim());
+  if (!matched) return fee;
+  return `${Number(matched[1].replace(/,/g, "")).toLocaleString("ja-JP")}円`;
+}
+
+// カード用の短い日付(今年なら「10/11」、それ以外は「2027/1/5」)
+function formatShortDate(value) {
+  const date = parseLocalDate(value);
+  if (!date) return "";
+  const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
+  return date.getFullYear() === getToday().getFullYear() ? monthDay : `${date.getFullYear()}/${monthDay}`;
+}
+
+// チームのアイコン代わりの頭文字(英字は2文字、日本語は1文字)
+function getInitials(name) {
+  const text = String(name || "").trim();
+  if (!text) return "?";
+  if (/^[A-Za-z0-9]/.test(text)) {
+    const words = text.split(/\s+/).filter(Boolean);
+    const letters = words.length > 1 ? words[0][0] + words[1][0] : text.slice(0, 2);
+    return letters.toUpperCase();
+  }
+  return [...text][0];
+}
+
 function renderListings() {
   elements.listingGrid.replaceChildren();
   const listings = getFilteredListings();
   elements.activeResultCount.textContent = `${listings.length}件`;
+  renderCounts();
 
   if (listings.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty-cta";
 
+    const prefecture = activeListingFilters.prefecture;
+    const noListingsAtAll = state.listings.length === 0 && publicListings.length === 0;
+    const heading = document.createElement("h2");
+    heading.textContent = noListingsAtAll ? "まだ募集がありません" : "条件に合う募集がありません";
     const message = document.createElement("p");
-    const prefecture = elements.filterPrefecture.value;
     message.textContent =
       prefecture !== "all"
         ? `${prefecture}の募集はまだありません。最初の募集を投稿して、共有ボタンで地元のチームに知らせましょう。`
-        : "条件に合う募集がありません。フィルターを変更するか、最初の募集を投稿しましょう。";
+        : noListingsAtAll
+          ? "最初の募集を出してみましょう。LINEなどで共有すると、アプリを使っていないチームにも届きます。"
+          : "条件をゆるめるか、最初の募集を投稿しましょう。";
 
     const actions = document.createElement("div");
     actions.className = "card-actions";
@@ -3343,18 +3362,17 @@ function renderListings() {
     createButton.addEventListener("click", () => {
       if (prefecture !== "all") {
         elements.listingForm.elements.prefecture.value = prefecture;
-        elements.listingForm.elements.prefecture.dispatchEvent(new Event("change"));
+        updateListingMunicipalitySelect();
       }
-      elements.listingForm.scrollIntoView({ behavior: "smooth", block: "start" });
-      elements.listingForm.classList.add("form-highlight");
-      setTimeout(() => elements.listingForm.classList.remove("form-highlight"), 1600);
+      navigateTo("post");
+      highlightForm(elements.listingForm);
     });
     const facilityButton = document.createElement("button");
     facilityButton.type = "button";
     facilityButton.className = "secondary";
     facilityButton.textContent = "近くの体育館・コートを探す";
     facilityButton.addEventListener("click", () => {
-      switchAppView("facilities");
+      navigateTo("courts");
       if (prefecture !== "all") {
         elements.facilitySearchPrefecture.value = prefecture;
         elements.facilitySearchPrefecture.dispatchEvent(new Event("change"));
@@ -3362,7 +3380,7 @@ function renderListings() {
     });
     actions.append(createButton, facilityButton);
 
-    empty.append(message, actions);
+    empty.append(heading, message, actions);
     elements.listingGrid.append(empty);
     return;
   }
@@ -3385,6 +3403,8 @@ function renderListings() {
     const teamBody = node.querySelector(".listing-team-body");
     const matchStatus = node.querySelector(".match-status");
     const viewApplications = node.querySelector(".view-applications");
+    const whereText = node.querySelector(".where-text");
+    const teamChip = node.querySelector(".team-chip");
 
     const daysLeft = getDaysUntil(listing.date);
     const expired = isExpiredListing(listing);
@@ -3392,6 +3412,7 @@ function renderListings() {
 
     badge.textContent = typeLabels[listing.type] ?? listing.type;
     badge.classList.add(listing.type);
+    card.dataset.type = listing.type;
     if (listing.isPublic) {
       card.classList.add("public-listing");
       const publicBadge = document.createElement("span");
@@ -3406,21 +3427,40 @@ function renderListings() {
     daysLeftBadge.classList.toggle("soon", !expired && daysLeft !== null && daysLeft <= 3);
     card.classList.toggle("expired", expired);
     title.textContent = listing.title;
-    date.textContent = listing.date;
+    date.textContent = formatShortDate(listing.date) || "日程未定";
     weekday.textContent = getListingWeekday(listing);
+    whereText.textContent = buildArea(listing) || "地域未設定";
     [
-      buildArea(listing),
       listing.category,
       listing.level,
-      listing.courtReserved ? "体育館確保済み" : "体育館未確保",
+      listing.courtReserved ? "体育館確保済み" : null,
       listing.facilityName ? `会場: ${listing.facilityName}` : null,
     ].filter(Boolean).forEach((label) => {
       const tag = document.createElement("span");
       tag.textContent = label;
+      if (label === "体育館確保済み") tag.className = "ok";
+      if (label.startsWith("会場: ")) tag.className = "venue";
       tagRow.append(tag);
     });
-    meta.textContent = listing.fee || "参加費未設定";
-    notes.textContent = listing.notes || "詳細未入力";
+    meta.textContent = formatFee(listing.fee) || "参加費未設定";
+    notes.textContent = listing.notes || "";
+    notes.hidden = !listing.notes;
+
+    // 公式サイト(https:// の正しいURLのときだけリンクにする)
+    const siteUrl = normalizeSiteUrl(listing.siteUrl);
+    const siteLine = node.querySelector(".site-line");
+    if (siteUrl) {
+      const siteLink = siteLine.querySelector(".site-link");
+      siteLink.href = siteUrl;
+      siteLine.querySelector(".site-domain").textContent = new URL(siteUrl).hostname;
+      siteLink.setAttribute("aria-label", `公式サイト(${new URL(siteUrl).hostname})を新しいタブで開く`);
+      siteLine.hidden = false;
+    }
+
+    const teamName = listing.team?.name || "";
+    teamChip.hidden = !teamName;
+    teamChip.querySelector(".avatar").textContent = getInitials(teamName);
+    teamChip.querySelector(".team-name").textContent = teamName;
 
     // 募集チームの情報(募集作成時に登録済みチームのスナップショットを添付)
     if (listing.team?.name) {
@@ -3453,6 +3493,7 @@ function renderListings() {
     if (matched) {
       apply.disabled = true;
       apply.textContent = "マッチング成立済み";
+      apply.hidden = true;
     } else if (expired) {
       apply.disabled = true;
       apply.textContent = "受付終了";
@@ -3469,7 +3510,8 @@ function renderListings() {
         viewApplications.hidden = false;
         viewApplications.textContent = `応募 ${received.length}件を確認`;
         viewApplications.addEventListener("click", () => {
-          elements.applicationList.scrollIntoView({ behavior: "smooth", block: "start" });
+          setInboxBox("received");
+          navigateTo("inbox");
         });
       }
     }
@@ -3486,10 +3528,7 @@ function renderListings() {
         return;
       }
       await navigator.clipboard.writeText(text);
-      copy.textContent = "コピー済み";
-      setTimeout(() => {
-        copy.textContent = "共有文をコピー";
-      }, 1500);
+      showToast("募集の紹介文をコピーしました。LINEやメールに貼り付けて共有できます。");
     });
 
     if (listing.isPublic) {
@@ -3513,6 +3552,7 @@ function renderListings() {
       });
     } else {
       del.addEventListener("click", () => {
+        if (!window.confirm(`「${listing.title}」を削除しますか?(元に戻せません)`)) return;
         state.listings = state.listings.filter((item) => item.id !== listing.id);
         saveState();
         render();
@@ -3524,6 +3564,7 @@ function renderListings() {
 }
 
 function renderTeam() {
+  elements.postTeamHint.hidden = hasRegisteredTeam();
   if (!state.team) {
     elements.teamProfile.hidden = true;
     elements.teamFields.hidden = false;
@@ -3534,6 +3575,7 @@ function renderTeam() {
 
   elements.teamProfile.hidden = false;
   elements.teamFields.hidden = true;
+  elements.teamAvatar.textContent = getInitials(state.team.name);
   elements.teamProfileName.textContent = state.team.name || "";
   elements.teamProfileMeta.textContent = `${buildArea(state.team)} / ${state.team.category} / ${state.team.level}`;
   elements.teamForm.elements.name.value = state.team.name || "";
@@ -3549,20 +3591,150 @@ function renderTeam() {
   elements.clearTeam.disabled = false;
 }
 
-function renderApplications() {
-  elements.applicationList.replaceChildren();
+// マイチーム画面の「自分の募集」(この端末で作った募集と、全国に公開した募集)
+function renderMyListings() {
+  if (!elements.myListingList) return;
+  elements.myListingList.replaceChildren();
+  const localListings = [...state.listings].sort(
+    (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
+  );
 
-  if (state.applications.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "notes";
-    empty.textContent = "まだ応募メッセージはありません。";
-    elements.applicationList.append(empty);
+  if (localListings.length === 0 && state.myPublicListings.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-inline";
+    const text = document.createElement("p");
+    text.className = "notes";
+    text.textContent = "まだ募集はありません。";
+    const link = document.createElement("a");
+    link.className = "button-link secondary";
+    link.href = "#post";
+    link.textContent = "募集を作る";
+    empty.append(text, link);
+    elements.myListingList.append(empty);
     return;
   }
+
+  const addRow = (titleText, metaText, statusText, statusClass, onOpen) => {
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "list-row";
+    const main = document.createElement("span");
+    main.className = "list-row-main";
+    const title = document.createElement("strong");
+    title.textContent = titleText;
+    const meta = document.createElement("small");
+    meta.textContent = metaText;
+    main.append(title, meta);
+    const status = document.createElement("span");
+    status.className = `status-pill ${statusClass}`;
+    status.textContent = statusText;
+    row.append(main, status);
+    row.addEventListener("click", onOpen);
+    elements.myListingList.append(row);
+  };
+
+  localListings.forEach((listing) => {
+    const received = getApplicationsForListing(listing.id);
+    const matched = Boolean(listing.matchedApplicationId);
+    const statusText = matched
+      ? "成立"
+      : isExpiredListing(listing)
+        ? "終了"
+        : received.length > 0
+          ? `応募 ${received.length}件`
+          : "募集中";
+    const statusClass = matched ? "ok" : isExpiredListing(listing) ? "muted" : received.length > 0 ? "wait" : "";
+    addRow(
+      listing.title,
+      `${typeLabels[listing.type] || ""} ・ ${formatShortDate(listing.date) || "日程未定"} ・ この端末のみ`,
+      statusText,
+      statusClass,
+      () => {
+        if (received.length > 0) {
+          setInboxBox("received");
+          navigateTo("inbox");
+        } else {
+          showListingCollection(listing.type, { includePast: true });
+        }
+      },
+    );
+  });
+
+  state.myPublicListings.forEach((entry) => {
+    const statusText = PUBLIC_STATUS_LABELS[entry.status] || "承認待ち";
+    addRow(
+      entry.title,
+      `全国に公開 ・ 投稿 ${new Date(entry.createdAt).toLocaleDateString("ja-JP")}`,
+      statusText,
+      entry.status === "approved" ? "ok" : entry.status === "pending" ? "wait" : "muted",
+      () => {
+        setInboxBox("received");
+        navigateTo("inbox");
+      },
+    );
+  });
+}
+
+// 応募の置き場所: 公開募集へ自分が送った応募は「送った応募」、
+// この端末の募集に届いた応募は「届いた応募」に表示する
+function getApplicationBox(application) {
+  return application.sentToPublic ? "sent" : "received";
+}
+
+function renderInboxEmpty() {
+  elements.applicationList.querySelectorAll(".inbox-empty").forEach((node) => node.remove());
+  const receivedTotal =
+    state.applications.filter((app) => getApplicationBox(app) === "received").length +
+    state.myPublicListings.length;
+  const sentTotal = state.applications.filter((app) => getApplicationBox(app) === "sent").length;
+  elements.receivedCount.textContent = receivedTotal ? String(receivedTotal) : "";
+  elements.sentCount.textContent = sentTotal ? String(sentTotal) : "";
+
+  const addEmpty = (box, text) => {
+    const empty = document.createElement("div");
+    empty.className = "inbox-empty";
+    empty.dataset.box = box;
+    const p = document.createElement("p");
+    p.className = "notes";
+    p.textContent = text;
+    const link = document.createElement("a");
+    link.className = "button-link secondary";
+    link.href = box === "received" ? "#post" : "#search";
+    link.textContent = box === "received" ? "募集を作る" : "募集をさがす";
+    empty.append(p, link);
+    elements.applicationList.append(empty);
+  };
+  if (receivedTotal === 0) addEmpty("received", "まだ届いた応募はありません。募集を出して、共有ボタンで知らせてみましょう。");
+  if (sentTotal === 0) addEmpty("sent", "まだ応募していません。気になる募集の「応募する」から送れます。");
+}
+
+function makeThreadSteps(statusKey, hasReplies) {
+  const steps = document.createElement("ol");
+  steps.className = "thread-steps";
+  const current = statusKey === "accepted" ? 2 : hasReplies ? 1 : 0;
+  ["応募", "やりとり中", "成立"].forEach((label, index) => {
+    const step = document.createElement("li");
+    step.textContent = label;
+    if (statusKey === "declined") {
+      step.className = index === 0 ? "done" : "";
+    } else if (index < current || (index === current && statusKey === "accepted")) {
+      step.className = "done";
+    } else if (index === current) {
+      step.className = "now";
+      step.setAttribute("aria-current", "step");
+    }
+    steps.append(step);
+  });
+  return steps;
+}
+
+function renderApplications() {
+  elements.applicationList.replaceChildren();
 
   state.applications.forEach((application) => {
     const item = document.createElement("article");
     item.className = "private-item application-thread";
+    item.dataset.box = getApplicationBox(application);
     const listing = state.listings.find((entry) => entry.id === application.listingId) || null;
     const statusKey = APPLICATION_STATUS_LABELS[application.status] ? application.status : "pending";
 
@@ -3575,12 +3747,22 @@ function renderApplications() {
     statusBadge.textContent =
       application.sentToPublic && statusKey === "pending"
         ? "送信済み"
-        : APPLICATION_STATUS_LABELS[statusKey];
+        : statusKey === "pending" && (application.replies || []).length > 0
+          ? "やりとり中"
+          : APPLICATION_STATUS_LABELS[statusKey];
     head.append(title, statusBadge);
 
+    const who = document.createElement("div");
+    who.className = "thread-who";
+    const avatar = document.createElement("span");
+    avatar.className = "avatar";
+    avatar.setAttribute("aria-hidden", "true");
     const meta = document.createElement("p");
     meta.className = "meta";
-    const applicantName = application.applicantTeam?.name || application.teamName || "チーム未登録";
+    const applicantName =
+      application.applicantTeam?.name || application.teamName || application.applicantName || "チーム未登録";
+    avatar.textContent = getInitials(application.sentToPublic ? application.listingTitle : applicantName);
+    who.append(avatar, meta);
     const applicantDetail = application.applicantTeam
       ? [
           application.applicantTeam.area,
@@ -3590,16 +3772,26 @@ function renderApplications() {
           .filter(Boolean)
           .join(" / ")
       : "";
-    meta.textContent = `応募チーム: ${applicantName}${
-      applicantDetail ? `(${applicantDetail})` : ""
-    } / ${new Date(application.createdAt).toLocaleString("ja-JP")}`;
+    const whoName = document.createElement("strong");
+    const whoDetail = document.createElement("small");
+    if (application.sentToPublic) {
+      whoName.textContent = "あなたの応募";
+      whoDetail.textContent = new Date(application.createdAt).toLocaleString("ja-JP");
+    } else {
+      whoName.textContent = applicantName;
+      whoDetail.textContent = [applicantDetail, new Date(application.createdAt).toLocaleString("ja-JP")]
+        .filter(Boolean)
+        .join(" ・ ");
+    }
+    meta.append(whoName, whoDetail);
 
-    // 会話スレッド(最初の応募メッセージ+返信)
+    // 会話スレッド(最初の応募メッセージ+返信)。この端末の募集では募集者=自分
     const thread = document.createElement("div");
     thread.className = "application-messages";
     const appendMessage = (from, text, createdAt) => {
       const wrap = document.createElement("div");
-      wrap.className = `application-message ${from === "owner" ? "owner" : "applicant"}`;
+      const mine = application.sentToPublic ? from !== "owner" : from === "owner";
+      wrap.className = `application-message ${from === "owner" ? "owner" : "applicant"}${mine ? " mine" : ""}`;
       const role = document.createElement("span");
       role.className = "role";
       role.textContent = `${from === "owner" ? "募集者" : "応募者"}${
@@ -3615,7 +3807,11 @@ function renderApplications() {
       appendMessage(reply.from, reply.message, reply.createdAt);
     });
 
-    item.append(head, meta, thread);
+    item.append(head, who);
+    if (!application.sentToPublic) {
+      item.append(makeThreadSteps(statusKey, (application.replies || []).length > 0));
+    }
+    item.append(thread);
 
     if (application.sentToPublic) {
       if (application.applicationId && application.applicationKey) {
@@ -3647,7 +3843,7 @@ function renderApplications() {
 
         const appendServerMessage = (fromRole, text, createdAt) => {
           const wrap = document.createElement("div");
-          wrap.className = `application-message ${fromRole === "owner" ? "owner" : "applicant"}`;
+          wrap.className = `application-message ${fromRole === "owner" ? "owner" : "applicant mine"}`;
           const role = document.createElement("span");
           role.className = "role";
           role.textContent = `${fromRole === "owner" ? "募集者" : "応募者(自分)"}${
@@ -3697,7 +3893,7 @@ function renderApplications() {
         replyButton.addEventListener("click", async () => {
           const text = replyInput.value.trim();
           if (!text) {
-            replyInput.focus();
+            revealAndFocus(replyInput);
             return;
           }
           replyButton.disabled = true;
@@ -3736,7 +3932,7 @@ function renderApplications() {
       const sendReply = (from) => {
         const text = replyInput.value.trim();
         if (!text) {
-          replyInput.focus();
+          revealAndFocus(replyInput);
           return;
         }
         application.replies.push({ from, message: text, createdAt: new Date().toISOString() });
@@ -3768,11 +3964,18 @@ function renderApplications() {
         accept.type = "button";
         accept.textContent = "マッチング成立にする";
         accept.addEventListener("click", () => {
+          // 同じ募集で成立済みの応募があれば保留に戻し、成立は常に1件にする
+          getApplicationsForListing(listing.id).forEach((other) => {
+            if (other.id !== application.id && other.status === "accepted") {
+              other.status = "pending";
+            }
+          });
           application.status = "accepted";
           listing.matchedApplicationId = application.id;
           saveState();
           renderApplications();
           renderListings();
+          showToast(`マッチング成立です。${applicantName}とのやりとりを続けて、当日の詳細を決めましょう。`);
         });
         const decline = document.createElement("button");
         decline.type = "button";
@@ -3811,6 +4014,7 @@ function renderApplications() {
     del.type = "button";
     del.textContent = "削除";
     del.addEventListener("click", () => {
+      if (!window.confirm("このやりとりを削除しますか?(元に戻せません)")) return;
       if (listing && listing.matchedApplicationId === application.id) {
         listing.matchedApplicationId = null;
       }
@@ -3824,18 +4028,25 @@ function renderApplications() {
     item.append(actions);
     elements.applicationList.append(item);
   });
+
+  renderInboxEmpty();
+  renderMyListings();
+  updateInboxTabBadge();
 }
 
 let activeApplicationTarget = null;
 
 function startApplication(listing) {
-  elements.privateNotice.textContent = "";
+  setApplicationNotice("");
 
   if (listing.type === "opponent" && !hasRegisteredTeam()) {
-    elements.applicationForm.hidden = true;
-    elements.privateNotice.textContent =
-      "対戦相手募集へ応募するには、先に18歳以上の代表者によるチーム登録が必要です。";
-    elements.teamForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    const message = "試合相手の募集に応募するには、先にチーム登録(18歳以上の代表者)が必要です。登録後、もう一度「応募する」を押してください。";
+    closeApplicationForm();
+    elements.privateNotice.textContent = message;
+    elements.teamNotice.textContent = message;
+    elements.teamNotice.hidden = false;
+    showTeamEditor();
+    navigateTo("team");
     return;
   }
 
@@ -3846,10 +4057,16 @@ function startApplication(listing) {
 
   activeApplicationTarget = listing;
   const isPublic = Boolean(listing.isPublic);
-  elements.publicApplyFields.hidden = !isPublic;
+  const isOpenType = isOpenApplyType(listing.type);
+  // スクール・体験は、チーム登録がなくても代表者名で応募できる(端末内の募集でも名前欄を出す)
+  elements.publicApplyFields.hidden = !isPublic && !isOpenType;
+  elements.publicContactFields.hidden = !isPublic;
   elements.applicationForm.elements.contact.required = isPublic;
   elements.applicationForm.elements.contact.value = "";
-  elements.applicationForm.elements.applicantName.value = isPublic ? state.team?.name || "" : "";
+  elements.applicantNameLabel.textContent = isOpenType ? "代表者名(保護者・ご本人)" : "代表者名(ニックネーム可・任意)";
+  elements.applicationForm.elements.applicantName.placeholder = isOpenType ? "例: 山田(保護者)" : "例: Hoop Stars 代表";
+  elements.applicationForm.elements.applicantName.required = isOpenType;
+  elements.applicationForm.elements.applicantName.value = isPublic || isOpenType ? state.team?.name || "" : "";
 
   elements.applicationForm.hidden = false;
   elements.applicationForm.elements.listingId.value = listing.id;
@@ -3857,7 +4074,36 @@ function startApplication(listing) {
     ? `応募先(公開募集): ${listing.title}`
     : `応募先: ${listing.title}`;
   elements.applicationForm.elements.message.value = "";
-  elements.applicationForm.scrollIntoView({ behavior: "smooth", block: "start" });
+  openApplicationDialog();
+}
+
+function openApplicationDialog() {
+  const dialog = elements.applyDialog;
+  if (dialog && typeof dialog.showModal === "function" && !dialog.open) {
+    try {
+      dialog.showModal();
+    } catch {
+      dialog.setAttribute("open", "");
+    }
+  } else if (dialog && !dialog.open) {
+    dialog.setAttribute("open", "");
+  }
+  elements.applicationForm.elements.message.focus({ preventScroll: true });
+}
+
+function closeApplicationForm() {
+  const notice = document.getElementById("applicationNotice");
+  if (notice) notice.textContent = "";
+  elements.applicationForm.reset();
+  elements.applicationForm.hidden = true;
+  elements.publicApplyFields.hidden = true;
+  elements.applicationForm.elements.applicantName.required = false;
+  activeApplicationTarget = null;
+  const dialog = elements.applyDialog;
+  if (dialog?.open) {
+    if (typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+  }
 }
 
 function renderFacilities() {
@@ -3967,7 +4213,7 @@ function renderFacilities() {
     actions.append(createListing);
 
     const hideButton = document.createElement("button");
-    hideButton.className = "secondary";
+    hideButton.className = "text-button";
     hideButton.type = "button";
     hideButton.textContent = "非表示";
     hideButton.title = "一覧から隠します(「非表示にした施設」からいつでも戻せます)";
@@ -3986,30 +4232,27 @@ function renderFacilities() {
   });
 }
 
+// 種類ボタンの件数(ローカル募集と公開募集の両方。終わった募集は数えない)。0件は表示しない
 function renderCounts() {
-  // ローカル募集と公開募集(サーバー)の両方を数える
-  const allListings = [...state.listings, ...publicListings];
-  elements.countMatch.textContent = allListings.filter(
-    (listing) => listing.type === "opponent",
-  ).length;
-  elements.countMember.textContent = allListings.filter(
-    (listing) => listing.type === "member",
-  ).length;
-  elements.countPickup.textContent = allListings.filter((listing) =>
-    ["pickup", "helper"].includes(listing.type),
-  ).length;
-  elements.countFacilities.textContent = getAllFacilities().length;
+  const openListings = [...state.listings, ...publicListings].filter((listing) => !isExpiredListing(listing));
+  elements.chipCounts.forEach((counter) => {
+    const count = openListings.filter((listing) => listing.type === counter.dataset.countType).length;
+    counter.textContent = count > 0 ? String(count) : "";
+  });
+  elements.facilityTotal.textContent = getAllFacilities().length.toLocaleString("ja-JP");
 }
 
 function makeShareText(listing) {
   const venueLine = listing.facilityName ? `\n会場: ${listing.facilityName}` : "";
+  const siteUrl = normalizeSiteUrl(listing.siteUrl);
+  const siteLine = siteUrl ? `\n公式サイト: ${siteUrl}` : "";
   return `【Hoop Match ${typeLabels[listing.type]}】\n${listing.title}\n地域: ${
     buildArea(listing)
   }\n日程: ${listing.date}${venueLine}\nカテゴリ: ${listing.category}\nレベル: ${
     listing.level
   }\n体育館: ${listing.courtReserved ? "確保済み" : "未確保"}\n参加費: ${
-    listing.fee || "未設定"
-  }\n詳細: ${listing.notes || "未入力"}${appUrlLine()}`;
+    formatFee(listing.fee) || "未設定"
+  }\n詳細: ${listing.notes || "未入力"}${siteLine}${appUrlLine()}`;
 }
 
 // 共有文の末尾に付けるアプリへのリンク(Web公開時のみ)。
@@ -4074,9 +4317,19 @@ async function handleListingSubmit(event) {
   // U12/U15/U18の募集は18歳以上の代表者確認が必須(required属性の保険)
   if (isYouthCategory(data.category) && data.adultConfirmed !== "on") {
     updateListingYouthConfirm();
-    elements.listingAdultConfirmed.focus();
+    revealAndFocus(elements.listingAdultConfirmed);
     return;
   }
+
+  // 公式サイト: 使えないカテゴリでは送らない。入っていれば https:// のURLか確かめる
+  if (!canUseSiteUrl(data.type, data.category)) data.siteUrl = "";
+  const siteUrl = normalizeSiteUrl(data.siteUrl);
+  if (siteUrl === null) {
+    window.alert("公式サイトは https:// で始まるURLを入れてください(例: https://example.com)。");
+    revealAndFocus(elements.listingForm.elements.siteUrl);
+    return;
+  }
+  data.siteUrl = siteUrl;
 
   // 公開募集: サーバーへ送信し、管理キーを端末内に保存する
   if (data.visibility === "public") {
@@ -4088,7 +4341,7 @@ async function handleListingSubmit(event) {
     }
     if (data.termsAgree !== "on") {
       window.alert("公開募集には利用規約とプライバシーポリシーへの同意が必要です。");
-      elements.publicTermsAgree.focus();
+      revealAndFocus(elements.publicTermsAgree);
       return;
     }
     // 公開に必要な項目のチェック(欠けている項目を具体的に伝える)
@@ -4118,14 +4371,15 @@ async function handleListingSubmit(event) {
       renderMyPublicListings();
       if (resultStatus === "approved") {
         window.alert(
-          "公開募集を投稿しました。すでに全国へ公開されています!\n応募の確認と募集の終了は「非公開の応募メッセージ」内の「自分の公開募集」から行えます(管理キーはこの端末に保存済み)。",
+          "募集を全国に公開しました!\n届いた応募の確認と募集の終了は「やりとり」画面の「全国に公開した自分の募集」から行えます(管理キーはこの端末に保存済み)。",
         );
         loadPublicListings({ silent: true });
       } else {
         window.alert(
-          "公開募集を送信しました。内容確認のうえ、運営者の承認後に全国へ公開されます。\n応募の確認と募集の終了は「非公開の応募メッセージ」内の「自分の公開募集」から行えます(管理キーはこの端末に保存済み)。",
+          "募集を送信しました。内容を確認したうえで、運営者の承認後に全国へ公開されます。\n状況は「マイチーム」の「自分の募集」で確認できます(管理キーはこの端末に保存済み)。",
         );
       }
+      navigateTo("team");
     } catch (error) {
       window.alert(`公開募集を送信できませんでした: ${error.message}`);
     }
@@ -4133,7 +4387,7 @@ async function handleListingSubmit(event) {
   }
 
   const newListing = {
-    id: crypto.randomUUID(),
+    id: generateId(),
     ...data,
     area: buildArea(data),
     weekday: data.weekday || getWeekdayLabel(data.date),
@@ -4143,6 +4397,7 @@ async function handleListingSubmit(event) {
   };
   if (!newListing.facilityId) delete newListing.facilityId;
   if (!newListing.facilityName) delete newListing.facilityName;
+  if (!newListing.siteUrl) delete newListing.siteUrl;
   delete newListing.visibility;
   delete newListing.termsAgree;
   // 登録済みチームの情報を募集カードに表示できるよう添付する
@@ -4160,7 +4415,12 @@ async function handleListingSubmit(event) {
   renderFacilities();
   renderTeam();
   renderApplications();
+  // 作った募集が今の地域の絞り込みで隠れないようにする
+  if (activeListingFilters.prefecture !== "all" && activeListingFilters.prefecture !== newListing.prefecture) {
+    activeListingFilters = { ...activeListingFilters, prefecture: "all", municipality: "all" };
+  }
   showListingCollection(newListing.type, { includePast: true });
+  showToast("募集を作りました。「共有」ボタンでLINEなどに送ると、ほかのチームに届きます。");
 }
 
 function handleTeamSubmit(event) {
@@ -4173,6 +4433,11 @@ function handleTeamSubmit(event) {
   });
   saveState();
   renderTeam();
+  // 「応募する」からチーム登録に来た場合は、登録後に募集一覧へ戻す
+  const cameFromApply = !elements.teamNotice.hidden;
+  elements.teamNotice.hidden = true;
+  showToast("チーム情報を保存しました。");
+  if (cameFromApply) navigateTo("search");
 }
 
 function clearTeamRegistration() {
@@ -4217,117 +4482,282 @@ function prefillListingFromFacility(facility) {
       ? `${currentNotes}\n${facilityNote}`
       : facilityNote;
   }
-  switchAppView("listings");
-  elements.listingForm.scrollIntoView({ behavior: "smooth", block: "start" });
-  elements.listingForm.classList.add("form-highlight");
-  setTimeout(() => elements.listingForm.classList.remove("form-highlight"), 1600);
+  navigateTo("post");
+  highlightForm(elements.listingForm);
+  showToast(`「${facility.name}」を会場に設定しました。残りの項目を入力してください。`);
+}
+
+// ===== 募集の絞り込み(条件は activeListingFilters が正、画面の入力欄はその写し) =====
+const LISTING_FILTER_DEFAULTS = {
+  type: "all",
+  category: "all",
+  level: "all",
+  keyword: "",
+  courtOnly: false,
+  activeOnly: true,
+  dateRange: "all",
+  weekday: "all",
+  sort: "dateAsc",
+};
+
+const AREA_STORAGE_KEY = "hoop-match-area-v1";
+
+function loadSavedArea() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(AREA_STORAGE_KEY));
+    if (saved && prefectures.includes(saved.prefecture)) {
+      return { prefecture: saved.prefecture, municipality: saved.municipality || "all" };
+    }
+  } catch {
+    // 読めない環境(プライベートブラウズ等)では全国表示から始める
+  }
+  return { prefecture: "all", municipality: "all" };
+}
+
+function saveArea() {
+  try {
+    localStorage.setItem(
+      AREA_STORAGE_KEY,
+      JSON.stringify({
+        prefecture: activeListingFilters.prefecture,
+        municipality: activeListingFilters.municipality,
+      }),
+    );
+  } catch {
+    // 保存できなくても表示は続ける
+  }
+}
+
+function readFilterControls() {
+  return {
+    type: elements.filterType.value,
+    category: elements.filterCategory.value,
+    level: elements.filterLevel.value,
+    keyword: elements.filterKeyword.value,
+    prefecture: elements.filterPrefecture.value,
+    municipality: elements.filterMunicipality.value || "all",
+    courtOnly: elements.filterCourt.checked,
+    activeOnly: elements.filterActive.checked,
+    dateRange: elements.filterDateRange.value,
+    weekday: elements.filterWeekday.value,
+    sort: elements.filterSort.value,
+  };
+}
+
+function syncFilterControls() {
+  const filters = activeListingFilters;
+  elements.filterType.value = filters.type;
+  elements.filterCategory.value = filters.category;
+  elements.filterLevel.value = filters.level;
+  // 入力中のキーワード欄は書き戻さない(カーソル位置が飛ぶため)
+  if (document.activeElement !== elements.filterKeyword) {
+    elements.filterKeyword.value = filters.keyword;
+  }
+  elements.filterPrefecture.value = filters.prefecture;
+  updateMunicipalitySelect();
+  elements.filterMunicipality.value = filters.municipality;
+  if (!elements.filterMunicipality.value) elements.filterMunicipality.value = "all";
+  elements.filterCourt.checked = filters.courtOnly;
+  elements.filterActive.checked = filters.activeOnly;
+  elements.filterDateRange.value = filters.dateRange;
+  elements.filterWeekday.value = filters.weekday;
+  elements.filterSort.value = filters.sort;
+}
+
+function updateFilterIndicators() {
+  const { type, dateRange, courtOnly, category, prefecture, municipality } = activeListingFilters;
+  const tabType = type === "pickup-helper" ? "pickup" : type;
+  elements.listingTabs.forEach((item) => {
+    const isActive = item.dataset.listingTab === tabType;
+    item.classList.toggle("active", isActive);
+    item.setAttribute("aria-pressed", String(isActive));
+  });
+  const quickState = {
+    weekend: dateRange === "weekend",
+    week: dateRange === "7",
+    court: courtOnly,
+    youth: category === "youth",
+  };
+  elements.quickChips.forEach((chip) => {
+    const on = Boolean(quickState[chip.dataset.quick]);
+    chip.classList.toggle("active", on);
+    chip.setAttribute("aria-pressed", String(on));
+  });
+  elements.areaLabel.textContent =
+    prefecture === "all" ? "全国" : municipality !== "all" ? municipality : prefecture;
+  elements.areaButton.setAttribute("aria-label", `地域を変更(いまは${elements.areaLabel.textContent})`);
+}
+
+function applyListingFilters(next) {
+  activeListingFilters = { ...activeListingFilters, ...next };
+  syncFilterControls();
+  saveArea();
+  updateFilterIndicators();
+  renderListings();
 }
 
 function setListingFilterControls(type, { includePast = true } = {}) {
-  elements.filterType.value = ["opponent", "member", "helper", "pickup", "practice"].includes(type)
-    ? type
-    : "all";
-  elements.filterCategory.value = "all";
-  elements.filterLevel.value = "all";
-  elements.filterKeyword.value = "";
-  elements.filterPrefecture.value = "all";
-  updateMunicipalitySelect();
-  elements.filterMunicipality.value = "all";
-  elements.filterCourt.checked = false;
-  elements.filterActive.checked = !includePast;
-  elements.filterDateRange.value = "all";
-  elements.filterWeekday.value = "all";
-  elements.filterSort.value = "dateAsc";
+  activeListingFilters = {
+    ...activeListingFilters,
+    ...LISTING_FILTER_DEFAULTS,
+    type: ["opponent", "member", "helper", "pickup", "practice", "school", "trial", "pickup-helper"].includes(type) ? type : "all",
+    activeOnly: !includePast,
+  };
+  syncFilterControls();
 }
 
+// 種類を指定して募集一覧を開く(地域の選択はそのまま残す)
 function showListingCollection(type, options = {}) {
   const includePast = options.includePast ?? true;
-  const tabType = type === "pickup-helper" ? "pickup" : type;
-  elements.listingTabs.forEach((item) => {
-    item.classList.toggle("active", item.dataset.listingTab === tabType);
-  });
   setListingFilterControls(type, { includePast });
-  activeListingFilters = {
-    type,
-    category: "all",
-    level: "all",
-    keyword: "",
-    prefecture: "all",
-    municipality: "all",
-    courtOnly: false,
-    activeOnly: !includePast,
-    dateRange: "all",
-    weekday: "all",
-    sort: "dateAsc",
-  };
+  updateFilterIndicators();
   renderListings();
-  switchAppView("listings");
+  navigateTo("search");
 }
 
 function activateListingType(type) {
-  elements.listingTabs.forEach((item) => {
-    item.classList.toggle("active", item.dataset.listingTab === type);
+  applyListingFilters({ type });
+}
+
+function toggleQuickFilter(name) {
+  const filters = activeListingFilters;
+  if (name === "weekend") applyListingFilters({ dateRange: filters.dateRange === "weekend" ? "all" : "weekend" });
+  if (name === "week") applyListingFilters({ dateRange: filters.dateRange === "7" ? "all" : "7" });
+  if (name === "court") applyListingFilters({ courtOnly: !filters.courtOnly });
+  if (name === "youth") applyListingFilters({ category: filters.category === "youth" ? "all" : "youth" });
+}
+
+// ===== 画面(タブ)の切り替え。URLの #search などと連動し、戻るボタンでも戻れる =====
+const VIEW_NAMES = ["search", "courts", "post", "inbox", "team"];
+let currentView = "search";
+
+function viewFromHash() {
+  const name = location.hash.replace(/^#/, "");
+  return VIEW_NAMES.includes(name) ? name : "search";
+}
+
+function showView(view) {
+  const next = VIEW_NAMES.includes(view) ? view : "search";
+  const changed = next !== currentView;
+  currentView = next;
+  document.body.dataset.view = next;
+  elements.views.forEach((section) => {
+    section.hidden = section.dataset.view !== next;
   });
-  elements.filterType.value = type;
-  activeListingFilters = {
-    ...activeListingFilters,
-    type,
-  };
-  renderListings();
+  elements.viewLinks.forEach((link) => {
+    if (link.dataset.viewLink === next) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+  if (next === "courts") prepareCourtsView();
+  if (next === "post") prefillListingArea();
+  if (changed) window.scrollTo({ top: 0 });
 }
 
-function switchAppView(view) {
-  document.body.classList.add("view-active");
-  document.body.classList.toggle("view-facilities", view === "facilities");
-  document.body.classList.toggle("view-listings", view === "listings");
-  elements.homeButton.hidden = false;
-  if (view === "facilities") {
-    updateFacilitySearchMunicipalitySelect();
-    renderFacilities();
-  }
-  window.scrollTo({ top: 0 });
+// 募集フォームの地域が空なら、登録チームの地域(なければ選択中の地域)を入れておく
+function prefillListingArea() {
+  const form = elements.listingForm;
+  if (form.elements.prefecture.value) return;
+  const source = state.team?.prefecture
+    ? { prefecture: state.team.prefecture, municipality: state.team.municipality }
+    : activeListingFilters.prefecture !== "all"
+      ? {
+          prefecture: activeListingFilters.prefecture,
+          municipality: activeListingFilters.municipality !== "all" ? activeListingFilters.municipality : "",
+        }
+      : null;
+  if (!source) return;
+  form.elements.prefecture.value = source.prefecture;
+  updateListingMunicipalitySelect();
+  if (source.municipality) form.elements.municipality.value = source.municipality;
 }
 
-function showHomeScreen() {
-  document.body.classList.remove("view-active", "view-facilities", "view-listings");
-  elements.homeButton.hidden = true;
-  window.scrollTo({ top: 0 });
-}
-
-function handleHeroAction(action) {
-  if (action === "court") {
-    elements.listingTabs.forEach((item) => {
-      item.classList.toggle("active", item.dataset.listingTab === "facility");
-    });
-    switchAppView("facilities");
-    return;
-  }
-
-  if (action === "opponent") {
-    activateListingType("opponent");
-    switchAppView("listings");
-    return;
-  }
-
-  if (action === "member") {
-    activateListingType("member");
-    switchAppView("listings");
+function navigateTo(view) {
+  showView(view);
+  const hash = `#${currentView}`;
+  if (location.hash !== hash) {
+    try {
+      history.pushState(null, "", hash);
+    } catch {
+      location.hash = hash;
+    }
   }
 }
 
-function handleSummaryAction(action) {
-  if (action === "facilities") {
-    elements.listingTabs.forEach((item) => {
-      item.classList.toggle("active", item.dataset.listingTab === "facility");
-    });
-    switchAppView("facilities");
-    // スマホではタップ後に該当セクションまで自動スクロールする
-    elements.facilityList?.closest("section")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    return;
+// コート画面を開いたとき、地域が決まっていればその地域の施設をすぐ出す
+function prepareCourtsView() {
+  const areaPrefecture = activeListingFilters.prefecture;
+  if (!hasFacilitySearchCriteria() && areaPrefecture !== "all") {
+    elements.facilitySearchPrefecture.value = areaPrefecture;
   }
+  updateFacilitySearchMunicipalitySelect();
+  renderFacilities();
+}
 
-  showListingCollection(action, { includePast: true });
-  elements.listingGrid?.closest("section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+// 閉じた折りたたみ(details)の中身を表示する前に、祖先の details を開く
+function openAncestorFolds(el) {
+  let fold = el instanceof Element ? el.closest("details") : null;
+  while (fold) {
+    fold.open = true;
+    fold = fold.parentElement ? fold.parentElement.closest("details") : null;
+  }
+}
+
+// 要素が別の画面にある場合は、その画面に切り替えてから表示する
+function revealElement(el) {
+  const section = el.closest(".view[data-view]");
+  if (section && section.dataset.view !== currentView) navigateTo(section.dataset.view);
+  openAncestorFolds(el);
+}
+
+function revealAndScroll(el, options) {
+  if (!el) return;
+  revealElement(el);
+  el.scrollIntoView(options);
+}
+
+function revealAndFocus(el, options) {
+  if (!el) return;
+  revealElement(el);
+  el.focus(options);
+}
+
+function highlightForm(form) {
+  form.classList.add("form-highlight");
+  setTimeout(() => form.classList.remove("form-highlight"), 1600);
+}
+
+// 画面下に数秒だけ出る小さなお知らせ
+let toastTimer = null;
+function showToast(message) {
+  if (!elements.toast) return;
+  elements.toast.textContent = message;
+  elements.toast.hidden = false;
+  requestAnimationFrame(() => elements.toast.classList.add("show"));
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    elements.toast.classList.remove("show");
+    setTimeout(() => {
+      elements.toast.hidden = true;
+    }, 250);
+  }, 3600);
+}
+
+function setApplicationNotice(message) {
+  elements.privateNotice.textContent = message;
+  const notice = document.getElementById("applicationNotice");
+  if (notice) notice.textContent = message;
+}
+
+// やりとり画面の「届いた応募/送った応募」の切り替え
+let inboxBox = "received";
+function setInboxBox(box) {
+  inboxBox = box === "sent" ? "sent" : "received";
+  document.querySelector(".private-panel")?.setAttribute("data-show-box", inboxBox);
+  elements.inboxSegments.forEach((segment) => {
+    const on = segment.dataset.inboxBox === inboxBox;
+    segment.classList.toggle("active", on);
+    segment.setAttribute("aria-selected", String(on));
+  });
 }
 
 async function handleApplicationSubmit(event) {
@@ -4340,50 +4770,54 @@ async function handleApplicationSubmit(event) {
         publicListings.find((item) => item.id === data.listingId);
 
   if (!listing) {
-    elements.privateNotice.textContent = "応募先の募集が見つかりません。";
+    setApplicationNotice("応募先の募集が見つかりません。");
     return;
   }
 
   if (listing.type === "opponent" && !hasRegisteredTeam()) {
-    elements.privateNotice.textContent =
-      "対戦相手募集へ応募するには、先に18歳以上の代表者によるチーム登録が必要です。";
+    setApplicationNotice("対戦相手募集へ応募するには、先に18歳以上の代表者によるチーム登録が必要です。");
     return;
   }
 
   if (isYouthCategory(listing.category) && data.adultConfirmed !== "on") {
-    elements.privateNotice.textContent =
-      "U12/U15/U18の募集への応募には、18歳以上の代表者としての確認が必要です。";
+    setApplicationNotice("U12/U15/U18の募集への応募には、18歳以上の代表者としての確認が必要です。");
+    return;
+  }
+
+  const applicantName = (data.applicantName || "").trim();
+  if (isOpenApplyType(listing.type) && !applicantName) {
+    setApplicationNotice("スクール・体験への応募には、代表者名(保護者・ご本人)の入力が必要です。");
     return;
   }
 
   if (listing.isPublic) {
     const contact = (data.contact || "").trim();
     if (!contact) {
-      elements.privateNotice.textContent =
-        "公開募集への応募には、募集者に伝える連絡先(成人代表者のもの)が必要です。";
+      setApplicationNotice("公開募集への応募には、募集者に伝える連絡先(成人代表者のもの)が必要です。");
       return;
     }
-    elements.privateNotice.textContent = "送信中…";
+    setApplicationNotice("送信中…");
     let publicResult = null;
     try {
       publicResult = await sbRpc("submit_application", {
         p_listing_id: listing.id,
         p_message: data.message.trim(),
         p_contact: contact,
-        p_applicant_name: (data.applicantName || "").trim() || null,
+        p_applicant_name: applicantName || null,
         p_adult_confirmed: data.adultConfirmed === "on",
       });
     } catch (error) {
-      elements.privateNotice.textContent = `送信できませんでした: ${error.message}`;
+      setApplicationNotice(`送信できませんでした: ${error.message}`);
       return;
     }
     // 控えとして端末内にも保存する(連絡先は端末外に出るのは募集者のみ)
     state.applications.unshift({
-      id: crypto.randomUUID(),
+      id: generateId(),
       listingId: listing.id,
       listingTitle: listing.title,
       listingType: listing.type,
       teamName: state.team?.name || "",
+      applicantName,
       adultConfirmed: data.adultConfirmed === "on",
       message: data.message.trim(),
       createdAt: new Date().toISOString(),
@@ -4395,22 +4829,23 @@ async function handleApplicationSubmit(event) {
       seenOwnerReplyCount: 0,
     });
     saveState();
-    elements.applicationForm.reset();
-    elements.applicationForm.hidden = true;
-    elements.publicApplyFields.hidden = true;
-    activeApplicationTarget = null;
+    closeApplicationForm();
     elements.privateNotice.textContent =
       "公開募集に応募を送信しました。募集者からの返信はこの画面の「やり取りを確認」で読めます(記入した連絡先に直接連絡が来る場合もあります)。";
     renderApplications();
+    setInboxBox("sent");
+    navigateTo("inbox");
+    showToast("応募を送りました。返信は「やりとり」に届きます。");
     return;
   }
 
   state.applications.unshift({
-    id: crypto.randomUUID(),
+    id: generateId(),
     listingId: listing.id,
     listingTitle: listing.title,
     listingType: listing.type,
     teamName: state.team?.name || "",
+    applicantName,
     applicantTeam: makeTeamSnapshot(),
     adultConfirmed: data.adultConfirmed === "on",
     message: data.message.trim(),
@@ -4420,12 +4855,14 @@ async function handleApplicationSubmit(event) {
     replies: [],
   });
   saveState();
-  elements.applicationForm.reset();
-  elements.applicationForm.hidden = true;
+  closeApplicationForm();
   elements.privateNotice.textContent =
-    "送信内容をこの端末内に非公開で保存しました。下の応募メッセージから返信・マッチング成立の操作ができます。";
+    "応募をこの端末に保存しました。下のやりとりから返信・マッチング成立の操作ができます。";
   renderApplications();
   renderListings();
+  setInboxBox("received");
+  navigateTo("inbox");
+  showToast("応募を送りました。");
 }
 
 function handleFacilitySubmit(event) {
@@ -4436,7 +4873,7 @@ function handleFacilitySubmit(event) {
   if (data.municipality === "__other__") {
     const other = (data.municipalityOther || "").trim();
     if (!other) {
-      elements.facilityMunicipalityOther.focus();
+      revealAndFocus(elements.facilityMunicipalityOther);
       return;
     }
     data.municipality = other;
@@ -4444,7 +4881,7 @@ function handleFacilitySubmit(event) {
   delete data.municipalityOther;
 
   state.facilities.unshift({
-    id: crypto.randomUUID(),
+    id: generateId(),
     ...data,
     source: "user",
     area: buildArea(data),
@@ -4537,6 +4974,9 @@ async function importData(event) {
     updateMunicipalitySelect();
     updateFacilitySearchMunicipalitySelect();
     render();
+    renderMyPublicListings();
+    renderHiddenFacilities();
+    updateInboxBanner();
     setDataStatus(
       `読み込み完了: 募集${state.listings.length}件 / 追加施設${state.facilities.length}件 / 応募${state.applications.length}件を復元しました。`,
     );
@@ -4563,46 +5003,46 @@ elements.filterPrefecture.addEventListener("input", () => {
   updateMunicipalitySelect();
 });
 elements.applyListingFilters.addEventListener("click", () => {
-  activeListingFilters = {
-    type: elements.filterType.value,
-    category: elements.filterCategory.value,
-    level: elements.filterLevel.value,
-    keyword: elements.filterKeyword.value,
-    prefecture: elements.filterPrefecture.value,
-    municipality: elements.filterMunicipality.value,
-    courtOnly: elements.filterCourt.checked,
-    activeOnly: elements.filterActive.checked,
-    dateRange: elements.filterDateRange.value,
-    weekday: elements.filterWeekday.value,
-    sort: elements.filterSort.value,
-  };
-  renderListings();
+  applyListingFilters(readFilterControls());
+  elements.filterPanel.open = false;
+  elements.listingGrid.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+elements.resetListingFilters.addEventListener("click", () => {
+  applyListingFilters({ ...LISTING_FILTER_DEFAULTS });
+});
+let keywordTimer = null;
+elements.filterKeyword.addEventListener("input", () => {
+  clearTimeout(keywordTimer);
+  keywordTimer = setTimeout(() => applyListingFilters({ keyword: elements.filterKeyword.value }), 250);
+});
+elements.filterKeyword.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    clearTimeout(keywordTimer);
+    applyListingFilters({ keyword: elements.filterKeyword.value });
+    elements.filterKeyword.blur();
+  }
 });
 elements.listingTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
-    const value = tab.dataset.listingTab;
+    activateListingType(tab.dataset.listingTab);
+  });
+});
+elements.quickChips.forEach((chip) => {
+  chip.addEventListener("click", () => toggleQuickFilter(chip.dataset.quick));
+});
+elements.areaButton.addEventListener("click", () => {
+  navigateTo("search");
+  elements.filterPanel.open = true;
+  elements.filterPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  elements.filterPrefecture.focus({ preventScroll: true });
+});
+elements.inboxSegments.forEach((segment) => {
+  segment.addEventListener("click", () => setInboxBox(segment.dataset.inboxBox));
+});
+window.addEventListener("hashchange", () => showView(viewFromHash()));
+window.addEventListener("popstate", () => showView(viewFromHash()));
 
-    if (value === "facility") {
-      elements.listingTabs.forEach((item) => item.classList.toggle("active", item === tab));
-      switchAppView("facilities");
-      return;
-    }
-
-    activateListingType(value);
-    switchAppView("listings");
-  });
-});
-elements.heroActions.forEach((action) => {
-  action.addEventListener("click", () => {
-    handleHeroAction(action.dataset.heroAction);
-  });
-});
-elements.summaryActions.forEach((action) => {
-  action.addEventListener("click", () => {
-    handleSummaryAction(action.dataset.summaryAction);
-  });
-});
-elements.homeButton.addEventListener("click", showHomeScreen);
 elements.facilitySearchPrefecture.addEventListener("change", () => {
   updateFacilitySearchMunicipalitySelect();
   renderFacilities();
@@ -4634,18 +5074,20 @@ elements.teamForm.addEventListener("submit", handleTeamSubmit);
 elements.editTeam.addEventListener("click", showTeamEditor);
 elements.clearTeam.addEventListener("click", clearTeamRegistration);
 elements.applicationForm.addEventListener("submit", handleApplicationSubmit);
-elements.cancelApplication.addEventListener("click", () => {
-  elements.applicationForm.reset();
-  elements.applicationForm.hidden = true;
-  elements.publicApplyFields.hidden = true;
-  activeApplicationTarget = null;
+elements.cancelApplication.addEventListener("click", closeApplicationForm);
+// Escキー等でシートが閉じられたときも、入力途中の状態を片付ける
+elements.applyDialog.addEventListener("close", () => {
+  if (!elements.applicationForm.hidden) closeApplicationForm();
 });
 elements.listingForm.addEventListener("submit", handleListingSubmit);
 elements.listingForm.elements.category.addEventListener("change", updateListingYouthConfirm);
+elements.listingForm.elements.type.addEventListener("change", updateListingTypeFields);
 elements.listingVisibility.addEventListener("change", updateVisibilityUI);
 elements.reloadPublic.addEventListener("click", () => loadPublicListings());
 elements.inboxBanner.addEventListener("click", () => {
-  document.querySelector(".private-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const { newApplications } = countInboxUnread();
+  setInboxBox(newApplications > 0 ? "received" : "sent");
+  navigateTo("inbox");
 });
 elements.restoreAllFacilities.addEventListener("click", () => {
   state.hiddenFacilityIds = [];
@@ -4679,8 +5121,16 @@ function setupAnalytics() {
 
 setupAnalytics();
 updateNewSinceBadge();
-markListingsSeen();
+// 公開機能が有効な場合、既読の保存は loadPublicListings() 成功後に行う。
+// ここで保存すると公開募集の既読IDが消え、毎回「前回から+N件」が出てしまう。
+if (!publicApiEnabled()) {
+  markListingsSeen();
+}
 setupRegionControls();
+activeListingFilters = { ...activeListingFilters, ...loadSavedArea() };
+syncFilterControls();
+updateFilterIndicators();
+setInboxBox("received");
 updateListingYouthConfirm();
 updateVisibilityUI();
 renderMyPublicListings();
@@ -4692,3 +5142,4 @@ if (publicApiEnabled()) {
   loadPublicListings({ silent: true });
 }
 render();
+showView(viewFromHash());
